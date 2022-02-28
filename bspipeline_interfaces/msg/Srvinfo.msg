@@ -1,0 +1,4 @@
+string server_name
+string service_type
+string service_name
+float64 avg_detect_time

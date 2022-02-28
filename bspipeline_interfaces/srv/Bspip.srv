@@ -1,0 +1,12 @@
+sensor_msgs/Image frame
+uint64 frame_id_send
+float64 sending_timestamp
+string client_name
+---
+Boxes[] boxes
+uint64 frame_id_return
+float64 frame_processing_time
+float64 returning_timestamp
+string server_name
+uint64 width
+uint64 height

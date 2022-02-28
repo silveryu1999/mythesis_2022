@@ -1,0 +1,3 @@
+Camera camera
+string target_server
+string target_service_name
