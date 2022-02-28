@@ -8,6 +8,9 @@ A distributed and cloud-end collaborated object detection framework based on ROS
 ROS2版本：Galactic  
 Python版本：3.8  
 ****  
+TO RUN:
+首先将basic_pipeline和bspipeline_interfaces复制到工作空间的src目录下
+此外，还需要准备好opencv, cv_bridge, yolov4，保证源代码import时能找到相应模块
 运行前编译：
 ```
 cd your_ros2_workspace
