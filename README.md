@@ -13,6 +13,3 @@ ros2 run basic_pipeline tracker [client_name]
 ros2 run basic_pipeline detector [client_name]
 ros2 run basic_pipeline scheduler [client_name]
 ros2 run basic_pipeline camera [client_name] [frame_rate]
-'''  
-
-sd  
