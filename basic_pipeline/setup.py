@@ -24,7 +24,6 @@ setup(
         	'scheduler = basic_pipeline.scheduler:main',
         	'detector = basic_pipeline.detector:main',
         	'server = basic_pipeline.server:main',
-        	'bs_client = basic_pipeline.client_member_function:main',
         ],
     },
 )
