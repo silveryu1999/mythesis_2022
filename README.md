@@ -8,6 +8,12 @@ A distributed and cloud-end collaborated object detection framework based on ROS
 ROS2版本：Galactic  
 Python版本：3.8  
 ****  
+运行前编译：
+```
+cd your_ros2_workspace
+colcon build
+. install/local_setup.bash
+```
 客户端运行：  
 为防止意外错误发生，最好按框架图中的逆拓扑顺序来启动各结点  
 ```
