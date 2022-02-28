@@ -8,6 +8,8 @@ A distributed and cloud-end collaborated object detection framework based on ROS
 客户端运行：  
 为防止意外错误发生，最好按框架图中的逆拓扑顺序来启动各结点  
 ```ros2 run basic_pipeline displayer [client_name]  
-```ros2 run basic_pipeline displayer [client_name]  
-  
+```ros2 run basic_pipeline tracker [client_name]  
+```ros2 run basic_pipeline detector [client_name]  
+```ros2 run basic_pipeline scheduler [client_name]  
+```ros2 run basic_pipeline camera [client_name] [frame_rate]  
 sd  
