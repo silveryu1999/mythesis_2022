@@ -13,3 +13,7 @@ ros2 run basic_pipeline tracker [client_name]
 ros2 run basic_pipeline detector [client_name]
 ros2 run basic_pipeline scheduler [client_name]
 ros2 run basic_pipeline camera [client_name] [frame_rate]
+  
+服务器运行：  
+'''
+ros2 run basic_pipeline server [server_name]
