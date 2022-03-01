@@ -20,6 +20,8 @@ colcon build
 客户端运行：  
 为防止意外错误发生，最好按框架图中的逆拓扑顺序来启动各结点  
 ```
+cd your_ros2_workspace
+. install/local_setup.bash
 ros2 run basic_pipeline displayer [client_name]
 ros2 run basic_pipeline tracker [client_name]
 ros2 run basic_pipeline detector [client_name]
@@ -29,5 +31,7 @@ ros2 run basic_pipeline camera [client_name] [frame_rate]
   
 服务器运行：  
 ```
+cd your_ros2_workspace
+. install/local_setup.bash
 ros2 run basic_pipeline server [server_name]
 ```
