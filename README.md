@@ -11,6 +11,11 @@ Python版本：3.8
 TO RUN:  
 首先将basic_pipeline和bspipeline_interfaces复制到工作空间的src目录下  
 此外，还需要准备好opencv, cv_bridge, yolov4，保证源代码import时能找到相应模块  
+项目中使用了读写锁，由于python3的threading模块没有自带的读写锁，因此使用了第三方实现的读写锁：  
+[readerwriterlock 1.0.9](https://pypi.org/project/readerwriterlock/)  
+```
+python3 -m pip install -U readerwriterlock
+```
 运行前编译：  
 ```
 cd your_ros2_workspace
