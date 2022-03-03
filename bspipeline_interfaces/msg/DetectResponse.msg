@@ -1,10 +1,5 @@
-sensor_msgs/Image frame
-uint64 frame_id_send
-float64 sending_timestamp
-string client_name
----
 AbsBoxes[] boxes
-uint64 frame_id_return
+uint64 frame_id
 float64 frame_processing_time
 float64 returning_timestamp
 string server_name

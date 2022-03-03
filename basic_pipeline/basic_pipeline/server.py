@@ -7,6 +7,9 @@ from rclpy.callback_groups import ReentrantCallbackGroup
 from rclpy.executors import MultiThreadedExecutor
 from bspipeline_interfaces.srv import Bspip
 from bspipeline_interfaces.msg import Boxes
+from bspipeline_interfaces.msg import AbsBoxes
+from bspipeline_interfaces.msg import DetectRequest
+from bspipeline_interfaces.msg import DetectResponse
 from bspipeline_interfaces.msg import Srvinfo
 from sensor_msgs.msg import Image # Image is the message type
 from cv_bridge import CvBridge # Package to convert between ROS and OpenCV Images
@@ -32,8 +35,9 @@ class DetectService(Node):
 
         self.srv_name = self.name + '_bspip'
         self.group = ReentrantCallbackGroup()
-        self.srv = self.create_service(Bspip, self.srv_name, self.frames_callback, callback_group=self.group)
-        self.pub = self.create_publisher(Srvinfo, 'server_info', 30, callback_group=self.group)
+        self.req_listener = self.create_subscription(DetectRequest, self.name + '_detect_request', self.frames_callback, 100, callback_group=self.group)
+        #self.srv = self.create_service(Bspip, self.srv_name, self.frames_callback, callback_group=self.group)
+        self.pub = self.create_publisher(Srvinfo, 'server_info', 10, callback_group=self.group)
 
         # Used to convert between ROS and OpenCV images
         self.br = CvBridge()
@@ -65,7 +69,63 @@ class DetectService(Node):
         self.srv_timer = self.create_timer(1.0, self.srvinfo_publisher, callback_group=self.group)
         self.get_logger().info('Server init done.')
 
+    def frames_callback(self, msg):
+        time_start = time.time()
 
+        self.get_logger().info('Incoming: From: %s FrameID: %d' % (msg.client_name, msg.frame_id))
+
+        # Convert ROS Image message to OpenCV image
+        current_frame = self.br.imgmsg_to_cv2(msg.frame)
+
+        # detect
+        sized = cv2.resize(current_frame, (self.darknet.width, self.darknet.height))
+        sized = cv2.cvtColor(sized, cv2.COLOR_BGR2RGB)
+
+        boxes = do_detect(self.darknet, sized, 0.4, 0.6, self.use_cuda)
+        boxes_zero = np.array(boxes[0]).tolist()
+
+        width = current_frame.shape[1]
+        height = current_frame.shape[0]
+
+        response = DetectResponse()
+
+        for i in range(len(boxes_zero)):
+            #response_boxes = Boxes()
+            #response_boxes.x1 = boxes_zero[i][0]
+            #response_boxes.y1 = boxes_zero[i][1]
+            #response_boxes.x2 = boxes_zero[i][2]
+            #response_boxes.y2 = boxes_zero[i][3]
+            response_boxes = AbsBoxes()
+            response_boxes.x1 = int(boxes_zero[i][0] * width)
+            response_boxes.y1 = int(boxes_zero[i][1] * height)
+            response_boxes.x2 = int(boxes_zero[i][2] * width)
+            response_boxes.y2 = int(boxes_zero[i][3] * height)
+            response_boxes.conf = boxes_zero[i][5]
+            response_boxes.name = self.class_names[int(boxes_zero[i][6])]
+            response.boxes.append(response_boxes)
+
+        response.frame_id = msg.frame_id
+        response.server_name = self.name
+        response.width = width
+        response.height = height
+        response.returning_timestamp = msg.sending_timestamp
+        time_end = time.time()
+        frame_processing_time = time_end - time_start
+        response.frame_processing_time = frame_processing_time
+
+        # recording info
+        self.process_time_list_lock.acquire()
+        self.process_time_list[self.process_time_list_index] = frame_processing_time
+        self.process_time_list_index = (self.process_time_list_index + 1) % self.time_span
+        if(self.process_time_list_size < self.time_span):
+            self.process_time_list_size += 1
+        self.process_time_list_lock.release()
+
+        pub = self.create_publisher(DetectResponse, msg.client_name + '_detect_response', 10, callback_group=self.group)
+        pub.publish(response)
+        del pub
+
+    '''
     def frames_callback(self, request, response):
         time_start = time.time()
 
@@ -85,11 +145,16 @@ class DetectService(Node):
         height = current_frame.shape[0]
 
         for i in range(len(boxes_zero)):
-            response_boxes = Boxes()
-            response_boxes.x1 = boxes_zero[i][0]
-            response_boxes.y1 = boxes_zero[i][1]
-            response_boxes.x2 = boxes_zero[i][2]
-            response_boxes.y2 = boxes_zero[i][3]
+            #response_boxes = Boxes()
+            #response_boxes.x1 = boxes_zero[i][0]
+            #response_boxes.y1 = boxes_zero[i][1]
+            #response_boxes.x2 = boxes_zero[i][2]
+            #response_boxes.y2 = boxes_zero[i][3]
+            response_boxes = AbsBoxes()
+            response_boxes.x1 = int(boxes_zero[i][0] * width)
+            response_boxes.y1 = int(boxes_zero[i][1] * height)
+            response_boxes.x2 = int(boxes_zero[i][2] * width)
+            response_boxes.y2 = int(boxes_zero[i][3] * height)
             response_boxes.conf = boxes_zero[i][5]
             response_boxes.name = self.class_names[int(boxes_zero[i][6])]
             response.boxes.append(response_boxes)
@@ -118,6 +183,7 @@ class DetectService(Node):
         self.process_time_list_lock.release()
 
         return response
+    '''
 
     def srvinfo_publisher(self):
         self.process_time_list_lock.acquire()
@@ -147,7 +213,7 @@ class DetectService(Node):
             self.last_flag = True
         else:
             if(self.last_flag == True):
-                self.get_logger().info('Server is idle recently...')
+                self.get_logger().info('Server is idle now...')
                 self.last_flag = False
         
         srv_info = Srvinfo()

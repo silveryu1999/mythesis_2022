@@ -11,11 +11,15 @@ find_package(sensor_msgs REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 
 rosidl_generate_interfaces(${PROJECT_NAME}
+  "msg/AbsBoxes.msg"
   "msg/Boxes.msg"
   "msg/Camera.msg"
-  "msg/DetectResult.msg"
-  "msg/Srvinfo.msg"
   "msg/Detect.msg"
+  "msg/DetectRequest.msg"
+  "msg/DetectResponse.msg"
+  "msg/DetectResult.msg"
+  "msg/TrackResult.msg"
+  "msg/Srvinfo.msg"
   "srv/Bspip.srv"
   DEPENDENCIES sensor_msgs
 )

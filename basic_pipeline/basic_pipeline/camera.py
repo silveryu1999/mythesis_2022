@@ -8,7 +8,7 @@ import rclpy
 from rclpy.node import Node
 
 
-class Camera_node(Node):
+class Camera_Node(Node):
 
     def __init__(self):
         if(len(sys.argv) == 1):
@@ -34,7 +34,7 @@ class Camera_node(Node):
             super().__init__(self.name + '_camera')
 
             self.camera_topic = self.name + '_camera_frame'
-            self.publisher_ = self.create_publisher(Camera, self.camera_topic, 30)
+            self.publisher_ = self.create_publisher(Camera, self.camera_topic, 10)
 
             # Create a VideoCapture object
             # The argument '0' gets the default webcam.
@@ -67,7 +67,7 @@ class Camera_node(Node):
 def main(args=None):
     rclpy.init(args=args)
 
-    camera_node = Camera_node()
+    camera_node = Camera_Node()
     
     if(camera_node.init_flag == True):
         rclpy.spin(camera_node)

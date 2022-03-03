@@ -14,7 +14,7 @@ import rclpy
 from rclpy.node import Node
 
 
-class Scheduler_node(Node):
+class Scheduler_Node(Node):
 
     def __init__(self):
         if(len(sys.argv) == 2):
@@ -32,10 +32,10 @@ class Scheduler_node(Node):
         self.server_list_lock = threading.Lock()
 
         self.group = ReentrantCallbackGroup()
-        self.srvinfo_listener = self.create_subscription(Srvinfo, 'server_info', self.srvinfo_callback, 30, callback_group=self.group)
-        self.camera_listener = self.create_subscription(Camera, self.name + '_camera_frame', self.camera_callback, 30, callback_group=self.group)
-        self.detect_publisher = self.create_publisher(Detect, self.name + '_detect_frame', 30, callback_group=self.group)
-        self.track_publisher = self.create_publisher(Camera, self.name + '_track_frame', 30, callback_group=self.group)
+        self.srvinfo_listener = self.create_subscription(Srvinfo, 'server_info', self.srvinfo_callback, 10, callback_group=self.group)
+        self.camera_listener = self.create_subscription(Camera, self.name + '_camera_frame', self.camera_callback, 10, callback_group=self.group)
+        self.detect_publisher = self.create_publisher(Detect, self.name + '_detect_frame', 10, callback_group=self.group)
+        self.track_publisher = self.create_publisher(Camera, self.name + '_track_frame', 10, callback_group=self.group)
         self.timer1 = self.create_timer(1.0, self.select_srv_callback, callback_group=self.group)
         self.timer2 = self.create_timer(5.0, self.clear_srv_callback, callback_group=self.group)
 
@@ -48,6 +48,7 @@ class Scheduler_node(Node):
 
     def camera_callback(self, msg):
         self.get_logger().info('-----------------------------------------')
+
         if(self.counter == 0):
             if(self.target_server != None):
                 detect = Detect()
@@ -64,7 +65,7 @@ class Scheduler_node(Node):
             self.track_publisher.publish(msg)
             self.get_logger().info('Frame %d has been submitted to the tracker.' % (msg.frame_id))
 
-        if(self.counter == self.interval):
+        if(self.counter >= self.interval):
             self.counter = 0
         else:
             self.counter += 1
@@ -91,7 +92,6 @@ class Scheduler_node(Node):
             self.last_state_is_no_server = False
             self.get_logger().info('Target server selected: %s' % (min_process_time_server))
         self.server_list_lock.release()
-
     
     def clear_srv_callback(self):
         self.server_list_lock.acquire()
@@ -105,7 +105,7 @@ def main(args=None):
     rclpy.init(args=args)
 
     try:
-        scheduler_node = Scheduler_node()
+        scheduler_node = Scheduler_Node()
         executor = MultiThreadedExecutor(num_threads=4)
         executor.add_node(scheduler_node)
         try:

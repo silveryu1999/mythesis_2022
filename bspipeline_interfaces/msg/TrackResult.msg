@@ -1,6 +1,4 @@
 AbsBoxes[] result_boxes
 uint64 frame_id
-float64 total_time
+uint64 last_detect_result_frame_id
 float64 process_time
-float64 flight_time
-string server_name
