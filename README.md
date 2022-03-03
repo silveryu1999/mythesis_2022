@@ -12,7 +12,7 @@ Python版本：3.8
 TO RUN:  
 首先将basic_pipeline和bspipeline_interfaces复制到工作空间的src目录下  
 此外，还需要准备好opencv, cv_bridge, yolov4，保证源代码import时能找到相应模块  
-项目中使用了读写锁，由于python3的threading模块没有自带的读写锁，因此使用了第三方实现的读写锁：[readerwriterlock 1.0.9](https://pypi.org/project/readerwriterlock/)  
+项目中使用了读写锁，由于python3的threading模块没有自带的读写锁，因此使用了第三方实现的读写锁：[readerwriterlock 1.0.9](https://pypi.org/project/readerwriterlock/)(注意，在高Camera帧率导致高并发时，该读写锁底层可能会出现一些错误，如需要满足更高Camera帧率的安全使用，可以考虑将tracker部分用C++改写，而读写锁改用pthread中的实现)  
 ```
 python3 -m pip install -U readerwriterlock
 ```
