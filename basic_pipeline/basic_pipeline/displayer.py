@@ -4,6 +4,7 @@ import os
 import threading
 import math
 import numpy as np
+import multiprocessing
 
 import itertools
 import struct  # get_image_size
@@ -170,7 +171,7 @@ def main(args=None):
 
     try:
         displayer_node = Displayer_Node()
-        executor = MultiThreadedExecutor(num_threads=4)
+        executor = MultiThreadedExecutor(num_threads=multiprocessing.cpu_count())
         executor.add_node(displayer_node)
         try:
             executor.spin()

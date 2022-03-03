@@ -1,6 +1,7 @@
 import sys
 import time
 import threading
+import multiprocessing
 
 from rclpy.callback_groups import ReentrantCallbackGroup
 from rclpy.executors import MultiThreadedExecutor
@@ -106,7 +107,7 @@ def main(args=None):
 
     try:
         scheduler_node = Scheduler_Node()
-        executor = MultiThreadedExecutor(num_threads=4)
+        executor = MultiThreadedExecutor(num_threads=multiprocessing.cpu_count())
         executor.add_node(scheduler_node)
         try:
             executor.spin()

@@ -1,5 +1,6 @@
 import sys
 import time
+
 from bspipeline_interfaces.msg import Camera
 from sensor_msgs.msg import Image # Image is the message type
 from cv_bridge import CvBridge # Package to convert between ROS and OpenCV Images

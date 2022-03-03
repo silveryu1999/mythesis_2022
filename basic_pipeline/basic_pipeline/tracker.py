@@ -1,6 +1,7 @@
 import sys
 import time
 import threading
+import multiprocessing
 
 from readerwriterlock import rwlock
 from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
@@ -237,7 +238,7 @@ def main(args=None):
 
     try:
         tracker_node = Tracker_Node()
-        executor = MultiThreadedExecutor(num_threads=4)
+        executor = MultiThreadedExecutor(num_threads=multiprocessing.cpu_count())
         executor.add_node(tracker_node)
         try:
             executor.spin()
