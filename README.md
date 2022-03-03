@@ -23,7 +23,7 @@ colcon build
 . install/local_setup.bash
 ```
 客户端运行：  
-为防止意外错误发生，最好按框架图中的逆拓扑顺序来启动各结点  
+为防止意外错误发生，最好按框架图中的逆拓扑顺序来启动各结点（等其它客户端结点init完毕后，Camera在最后才启动就行）  
 ```
 cd your_ros2_workspace
 . install/local_setup.bash
