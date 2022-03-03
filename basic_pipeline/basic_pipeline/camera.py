@@ -12,7 +12,7 @@ class Camera_Node(Node):
 
     def __init__(self):
         if(len(sys.argv) == 1):
-            self.frame_rate = 30
+            self.frame_rate = 15
             self.name = 'anonymous_client'
             self.init_flag = True
         elif(len(sys.argv) == 2):

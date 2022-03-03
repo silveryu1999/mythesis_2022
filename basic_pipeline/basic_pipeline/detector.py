@@ -28,7 +28,7 @@ class Detector_Node(Node):
 
 		self.group = ReentrantCallbackGroup()
 		self.detect_listener = self.create_subscription(Detect, self.name + '_detect_frame', self.detect_callback, 10, callback_group=self.group)
-		self.detect_response_listener = self.create_subscription(DetectResponse, self.name + '_detect_response', self.response_callback, 10, callback_group=self.group)
+		self.detect_response_listener = self.create_subscription(DetectResponse, self.name + '_detect_response', self.response_callback, 50, callback_group=self.group)
 		self.detect_result_publisher = self.create_publisher(DetectResult, self.name + '_detect_result', 10, callback_group=self.group)
 
 		self.last_detect_frame_id = 0
@@ -44,7 +44,7 @@ class Detector_Node(Node):
 		request.client_name = self.name
 		request.sending_timestamp = time.time()
 
-		pub = self.create_publisher(DetectRequest, msg.target_server + '_detect_request', 10, callback_group=self.group)
+		pub = self.create_publisher(DetectRequest, msg.target_server + '_detect_request', 50, callback_group=self.group)
 		pub.publish(request)
 		self.get_logger().info('Frame %d has been delivered to the server: %s.' % (msg.camera.frame_id, msg.target_server))
 		del pub
@@ -70,7 +70,6 @@ class Detector_Node(Node):
 			self.last_detect_frame_id_lock.release()
 			self.get_logger().info('Detect result of frame %d is outdated, now dropping it.' % (msg.frame_id))
 
-	
 	'''
 	def detect_callback(self, msg):
 		#self.get_logger().info('-----------------------------------------')
