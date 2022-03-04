@@ -28,6 +28,7 @@ colcon build
 cd your_ros2_workspace
 . install/local_setup.bash
 ros2 run basic_pipeline displayer [client_name]
+ros2 run basic_pipeline collector [client_name]
 ros2 run basic_pipeline tracker [client_name]
 ros2 run basic_pipeline detector [client_name]
 ros2 run basic_pipeline scheduler [client_name]
