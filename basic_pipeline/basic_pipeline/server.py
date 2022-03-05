@@ -115,12 +115,11 @@ class DetectService(Node):
         response.frame_processing_time = frame_processing_time
 
         # recording info
-        self.process_time_list_lock.acquire()
-        self.process_time_list[self.process_time_list_index] = frame_processing_time
-        self.process_time_list_index = (self.process_time_list_index + 1) % self.time_span
-        if(self.process_time_list_size < self.time_span):
-            self.process_time_list_size += 1
-        self.process_time_list_lock.release()
+        with self.process_time_list_lock:
+            self.process_time_list[self.process_time_list_index] = frame_processing_time
+            self.process_time_list_index = (self.process_time_list_index + 1) % self.time_span
+            if(self.process_time_list_size < self.time_span):
+                self.process_time_list_size += 1
 
         pub = self.create_publisher(DetectResponse, msg.client_name + '_detect_response', 10, callback_group=self.group)
         pub.publish(response)
@@ -187,16 +186,15 @@ class DetectService(Node):
     '''
 
     def srvinfo_publisher(self):
-        self.process_time_list_lock.acquire()
-        if(self.process_time_list_size != 0):
-            total_time = 0
-            for i in range(self.process_time_list_size):
-                total_time += self.process_time_list[i]
-            avg_process_time = total_time / self.process_time_list_size
-            flag = True
-        else:
-            flag = False
-        self.process_time_list_lock.release()
+        with self.process_time_list_lock:
+            if(self.process_time_list_size != 0):
+                total_time = 0
+                for i in range(self.process_time_list_size):
+                    total_time += self.process_time_list[i]
+                avg_process_time = total_time / self.process_time_list_size
+                flag = True
+            else:
+                flag = False
 
         if(flag == True and self.process_time_last_avg_time == avg_process_time):
             self.process_time_count += 1

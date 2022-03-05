@@ -24,6 +24,7 @@ setup(
         	'scheduler = basic_pipeline.scheduler:main',
         	'detector = basic_pipeline.detector:main',
         	'tracker = basic_pipeline.tracker:main',
+        	'collector = basic_pipeline.collector:main',
         	'displayer = basic_pipeline.displayer:main',
         	'server = basic_pipeline.server:main',
         ],

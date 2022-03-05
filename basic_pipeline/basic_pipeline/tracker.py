@@ -81,7 +81,8 @@ class Tracker_Node(Node):
         self.LKtracker_previmg = None
         self.LKtracker_prevpoints = None
         self.LKtracker_boxes = None
-        self.LKtracker_feature_params = dict(maxCorners = 200, qualityLevel = 0.001, minDistance = 30)
+        #self.LKtracker_feature_params = dict(maxCorners = 200, qualityLevel = 0.001, minDistance = 30)
+        self.LKtracker_feature_params = dict(maxCorners = 300, qualityLevel = 0.003, minDistance = 25)
         self.LKtracker_lk_params = dict(winSize = (15, 15), maxLevel = 2, criteria = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 0.03))
 
         self.get_logger().info('Tracker init done.')
@@ -111,7 +112,7 @@ class Tracker_Node(Node):
 
             track_result_msg.process_time = time.time() - track_time_start
             self.track_result_publisher.publish(track_result_msg)
-            self.get_logger().info('Track result of frame %d has been published to displayer. frame_delay: %d | tracking_time: %f.' % (msg.frame_id, id_diff, track_result_msg.process_time))
+            self.get_logger().info('Track result of frame %d has been published to collector. frame_delay: %d | tracking_time: %f.' % (msg.frame_id, id_diff, track_result_msg.process_time))
         '''
         with self.LKtracker_rlock:
             if(self.LKtracker_is_init == True):
@@ -122,7 +123,7 @@ class Tracker_Node(Node):
 
                 track_result_msg.process_time = time.time() - track_time_start
                 self.track_result_publisher.publish(track_result_msg)
-                self.get_logger().info('Track result of frame %d has been published to displayer. frame_delay: %d | tracking_time: %f.' % (msg.frame_id, id_diff, track_result_msg.process_time))
+                self.get_logger().info('Track result of frame %d has been published to collector. frame_delay: %d | tracking_time: %f.' % (msg.frame_id, id_diff, track_result_msg.process_time))
             else:
                 self.get_logger().info('Tracker received frame %d from scheduler, but has been dropped due to tracker not init yet.' % (msg.frame_id))
 

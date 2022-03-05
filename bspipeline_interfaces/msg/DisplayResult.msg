@@ -1,0 +1,9 @@
+sensor_msgs/Image frame
+uint64 current_camera_frame_id
+uint64 display_result_frame_id
+AbsBoxes[] result_boxes
+uint64 method
+float64 total_time
+float64 server_detect_time
+float64 local_tracking_time
+uint64 tracking_from_frame

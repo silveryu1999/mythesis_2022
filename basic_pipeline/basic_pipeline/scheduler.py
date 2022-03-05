@@ -43,9 +43,8 @@ class Scheduler_Node(Node):
         self.get_logger().info('Scheduler init done.')
 
     def srvinfo_callback(self, msg):
-        self.server_list_lock.acquire()
-        self.server_list[msg.server_name] = [msg.service_type, msg.service_name, msg.avg_detect_time]
-        self.server_list_lock.release()
+        with self.server_list_lock:
+            self.server_list[msg.server_name] = [msg.service_type, msg.service_name, msg.avg_detect_time]
 
     def camera_callback(self, msg):
         self.get_logger().info('-----------------------------------------')
@@ -72,34 +71,32 @@ class Scheduler_Node(Node):
             self.counter += 1
     
     def select_srv_callback(self):
-        self.server_list_lock.acquire()
-        if(len(self.server_list) == 0):
-            if(self.last_state_is_no_server == False):
-                self.target_server = None
-                self.last_state_is_no_server = True
+        with self.server_list_lock:
+            if(len(self.server_list) == 0):
+                if(self.last_state_is_no_server == False):
+                    self.target_server = None
+                    self.last_state_is_no_server = True
+                    self.get_logger().info('-----------------------------------------')
+                    self.get_logger().info('No server available now.')
+            else:
+                min_process_time = 1000.0
+                min_process_time_server = None
                 self.get_logger().info('-----------------------------------------')
-                self.get_logger().info('No server available now.')
-        else:
-            min_process_time = 1000.0
-            min_process_time_server = None
-            self.get_logger().info('-----------------------------------------')
-            self.get_logger().info('Current server list:')
-            for key in self.server_list:
-                self.get_logger().info('Server name: %s | Service type: %s | Service name: %s | Avg processing time: %f' % (key, self.server_list[key][0], self.server_list[key][1], self.server_list[key][2]))
-                if(self.server_list[key][2] < min_process_time):
-                    min_process_time = self.server_list[key][2]
-                    min_process_time_server = key
-            self.target_server = min_process_time_server
-            self.last_state_is_no_server = False
-            self.get_logger().info('Target server selected: %s' % (min_process_time_server))
-        self.server_list_lock.release()
+                self.get_logger().info('Current server list:')
+                for key in self.server_list:
+                    self.get_logger().info('Server name: %s | Service type: %s | Service name: %s | Avg processing time: %f' % (key, self.server_list[key][0], self.server_list[key][1], self.server_list[key][2]))
+                    if(self.server_list[key][2] < min_process_time):
+                        min_process_time = self.server_list[key][2]
+                        min_process_time_server = key
+                self.target_server = min_process_time_server
+                self.last_state_is_no_server = False
+                self.get_logger().info('Target server selected: %s' % (min_process_time_server))
     
     def clear_srv_callback(self):
-        self.server_list_lock.acquire()
-        self.server_list.clear()
-        # self.get_logger().info('-----------------------------------------')
-        # self.get_logger().info('Server list has been cleared!')
-        self.server_list_lock.release()
+        with self.server_list_lock:
+            self.server_list.clear()
+            # self.get_logger().info('-----------------------------------------')
+            # self.get_logger().info('Server list has been cleared!')
         
 
 def main(args=None):

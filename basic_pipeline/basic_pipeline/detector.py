@@ -51,11 +51,14 @@ class Detector_Node(Node):
 		del pub
 
 	def response_callback(self, msg):
-		self.last_detect_frame_id_lock.acquire()
-		if(msg.frame_id > self.last_detect_frame_id):
-			self.last_detect_frame_id = msg.frame_id
-			self.last_detect_frame_id_lock.release()
-
+		with self.last_detect_frame_id_lock:
+			if(msg.frame_id > self.last_detect_frame_id):
+				flag = True
+				self.last_detect_frame_id = msg.frame_id
+			else:
+				flag = False
+		
+		if(flag == True):
 			result = DetectResult()
 			result.result_boxes = msg.boxes
 			result.frame_id = msg.frame_id
@@ -66,9 +69,8 @@ class Detector_Node(Node):
 			result.flight_time = total_time - msg.frame_processing_time
 
 			self.detect_result_publisher.publish(result)
-			self.get_logger().info('Detect result of frame %d has been published to tracker and displayer.' % (msg.frame_id))
+			self.get_logger().info('Detect result of frame %d has been published to tracker and collector.' % (msg.frame_id))
 		else:
-			self.last_detect_frame_id_lock.release()
 			self.get_logger().info('Detect result of frame %d is outdated, now dropping it.' % (msg.frame_id))
 
 	'''
@@ -109,7 +111,7 @@ class Detector_Node(Node):
 						result.flight_time = flight_time
 						result.server_name = response.server_name
 						self.detect_result_publisher.publish(result)
-						self.get_logger().info('Detect result of frame %d has been published to tracker and displayer.' % (msg.camera.frame_id))
+						self.get_logger().info('Detect result of frame %d has been published to tracker and collector.' % (msg.camera.frame_id))
 					break
 	'''
 		

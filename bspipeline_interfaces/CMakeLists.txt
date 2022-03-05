@@ -19,6 +19,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/DetectResponse.msg"
   "msg/DetectResult.msg"
   "msg/TrackResult.msg"
+  "msg/DisplayResult.msg"
   "msg/Srvinfo.msg"
   "srv/Bspip.srv"
   DEPENDENCIES sensor_msgs
