@@ -13,7 +13,7 @@ Python版本：3.8
 ****  
 TO RUN:  
 首先将basic_pipeline和bspipeline_interfaces复制到工作空间的src目录下  
-此外，还需要准备好[opencv](https://docs.opencv.org/4.x/index.html), [cv_bridge](https://github.com/ros-perception/vision_opencv/tree/ros2/cv_bridge), [yolov4](https://github.com/Tianxiaomo/pytorch-YOLOv4)，保证源代码import时能找到相应模块(YOLOv4的utils)  
+除源文件package.xml标出的依赖之外，需要额外进行准备配置的有[opencv](https://docs.opencv.org/4.x/index.html), [cv_bridge](https://github.com/ros-perception/vision_opencv/tree/ros2/cv_bridge), [yolov4](https://github.com/Tianxiaomo/pytorch-YOLOv4)，可以参照网上教程进行配置，保证源代码import时能找到相应模块  
 项目中使用了读写锁，由于python3的threading模块没有自带的读写锁，python3中也没有任何包含读写锁的官方模块，因此使用了第三方实现的读写锁：[readerwriterlock 1.0.9](https://pypi.org/project/readerwriterlock/)
 ```
 python3 -m pip install -U readerwriterlock
