@@ -8,7 +8,7 @@ A distributed and cloud-end collaborated object detection framework based on ROS
 ![image text](https://github.com/sysu18364109/mythesis_2022/blob/main/pic1.png)  
 ![image text](https://github.com/sysu18364109/mythesis_2022/blob/main/pic2.png)  
 ****  
-ROS2版本：Galactic  
+ROS2版本：Galactic/Foxy  
 Python版本：3.8  
 ****  
 TO RUN:  
