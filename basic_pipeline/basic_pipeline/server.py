@@ -5,9 +5,6 @@ import threading
 import multiprocessing
 
 from rclpy.callback_groups import ReentrantCallbackGroup
-from rclpy.executors import MultiThreadedExecutor
-from bspipeline_interfaces.srv import Bspip
-from bspipeline_interfaces.msg import Boxes
 from bspipeline_interfaces.msg import AbsBoxes
 from bspipeline_interfaces.msg import DetectRequest
 from bspipeline_interfaces.msg import DetectResponse
@@ -37,7 +34,6 @@ class DetectService(Node):
         self.srv_name = self.name + '_bspip'
         self.group = ReentrantCallbackGroup()
         self.req_listener = self.create_subscription(DetectRequest, self.name + '_detect_request', self.frames_callback, 100, callback_group=self.group)
-        #self.srv = self.create_service(Bspip, self.srv_name, self.frames_callback, callback_group=self.group)
         self.pub = self.create_publisher(Srvinfo, 'server_info', 10, callback_group=self.group)
 
         # Used to convert between ROS and OpenCV images
@@ -91,11 +87,6 @@ class DetectService(Node):
         response = DetectResponse()
 
         for i in range(len(boxes_zero)):
-            #response_boxes = Boxes()
-            #response_boxes.x1 = boxes_zero[i][0]
-            #response_boxes.y1 = boxes_zero[i][1]
-            #response_boxes.x2 = boxes_zero[i][2]
-            #response_boxes.y2 = boxes_zero[i][3]
             response_boxes = AbsBoxes()
             response_boxes.x1 = int(boxes_zero[i][0] * width)
             response_boxes.y1 = int(boxes_zero[i][1] * height)
@@ -125,66 +116,6 @@ class DetectService(Node):
         pub.publish(response)
         del pub
 
-    '''
-    def frames_callback(self, request, response):
-        time_start = time.time()
-
-        self.get_logger().info('Incoming: From: %s FrameID: %d' % (request.client_name,request.frame_id_send))
-
-        # Convert ROS Image message to OpenCV image
-        current_frame = self.br.imgmsg_to_cv2(request.frame)
-
-        # detect
-        sized = cv2.resize(current_frame, (self.darknet.width, self.darknet.height))
-        sized = cv2.cvtColor(sized, cv2.COLOR_BGR2RGB)
-
-        boxes = do_detect(self.darknet, sized, 0.4, 0.6, self.use_cuda)
-        boxes_zero = np.array(boxes[0]).tolist()
-
-        width = current_frame.shape[1]
-        height = current_frame.shape[0]
-
-        for i in range(len(boxes_zero)):
-            #response_boxes = Boxes()
-            #response_boxes.x1 = boxes_zero[i][0]
-            #response_boxes.y1 = boxes_zero[i][1]
-            #response_boxes.x2 = boxes_zero[i][2]
-            #response_boxes.y2 = boxes_zero[i][3]
-            response_boxes = AbsBoxes()
-            response_boxes.x1 = int(boxes_zero[i][0] * width)
-            response_boxes.y1 = int(boxes_zero[i][1] * height)
-            response_boxes.x2 = int(boxes_zero[i][2] * width)
-            response_boxes.y2 = int(boxes_zero[i][3] * height)
-            response_boxes.conf = boxes_zero[i][5]
-            response_boxes.name = self.class_names[int(boxes_zero[i][6])]
-            response.boxes.append(response_boxes)
-
-        response.frame_id_return = request.frame_id_send
-        response.server_name = self.name
-        response.width = width
-        response.height = height
-        response.returning_timestamp = request.sending_timestamp
-
-        # Display image detect result
-        # result_img = plot_boxes_cv2(current_frame, boxes[0], savename=None, class_names=self.class_names)
-        # cv2.imshow("Frame result", result_img)
-        # cv2.waitKey(1)
-
-        time_end = time.time()
-        frame_processing_time = time_end - time_start
-        response.frame_processing_time = frame_processing_time
-
-        # recording info
-        self.process_time_list_lock.acquire()
-        self.process_time_list[self.process_time_list_index] = frame_processing_time
-        self.process_time_list_index = (self.process_time_list_index + 1) % self.time_span
-        if(self.process_time_list_size < self.time_span):
-            self.process_time_list_size += 1
-        self.process_time_list_lock.release()
-
-        return response
-    '''
-
     def srvinfo_publisher(self):
         with self.process_time_list_lock:
             if(self.process_time_list_size != 0):
@@ -207,7 +138,6 @@ class DetectService(Node):
             flag = False
 
         if(flag == True):
-            # self.get_logger().info('Server avg processing time: %f' % (avg_process_time))
             self.process_time_last_avg_time = avg_process_time
             self.last_flag = True
         else:

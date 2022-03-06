@@ -27,7 +27,7 @@ class Scheduler_Node(Node):
         self.target_server = None
         self.last_state_is_no_server = False
 
-        self.interval = 1
+        self.interval = 2
         self.counter = 0
         self.server_list = {}
         self.server_list_lock = threading.Lock()
@@ -95,8 +95,6 @@ class Scheduler_Node(Node):
     def clear_srv_callback(self):
         with self.server_list_lock:
             self.server_list.clear()
-            # self.get_logger().info('-----------------------------------------')
-            # self.get_logger().info('Server list has been cleared!')
         
 
 def main(args=None):

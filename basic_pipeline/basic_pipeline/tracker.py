@@ -53,34 +53,30 @@ class Tracker_Node(Node):
         super().__init__(self.name + '_tracker')
 
         self.group = ReentrantCallbackGroup()
-        self.mutex_group = MutuallyExclusiveCallbackGroup()
+        self.mutex_group1 = MutuallyExclusiveCallbackGroup()
+        self.mutex_group2 = MutuallyExclusiveCallbackGroup()
         self.camera_listener = self.create_subscription(Camera, self.name + '_camera_frame', self.camera_callback, 10, callback_group=self.group)
-        self.track_listener = self.create_subscription(Camera, self.name + '_track_frame', self.track_callback, 10, callback_group=self.group)
-        self.detect_result_listener = self.create_subscription(DetectResult, self.name + '_detect_result', self.detect_result_callback, 10, callback_group=self.mutex_group)
+        self.track_listener = self.create_subscription(Camera, self.name + '_track_frame', self.track_callback, 10, callback_group=self.mutex_group1)
+        self.detect_result_listener = self.create_subscription(DetectResult, self.name + '_detect_result', self.detect_result_callback, 10, callback_group=self.mutex_group2)
         self.track_result_publisher = self.create_publisher(TrackResult, self.name + '_track_result', 10, callback_group=self.group)
 
         self.br = CvBridge()
 
         # frame_history: store the frames for tracking
         self.frame_history = {}
-        self.frame_history_rwlock = rwlock.RWLockWrite()
+        self.frame_history_rwlock = rwlock.RWLockFair()
         self.frame_history_rlock = self.frame_history_rwlock.gen_rlock()
         self.frame_history_wlock = self.frame_history_rwlock.gen_wlock()
-
-        self.id_lock = threading.Lock()
-        # frame_id of last detect result that updates the tracker
-        self.LKtracker_last_update_frame_id = 0
         
         # LKtracker: tracking using Lucas-Kanade algorithm
-        self.LKtracker_rwlock = rwlock.RWLockWrite()
+        self.LKtracker_rwlock = rwlock.RWLockFair()
         self.LKtracker_rlock = self.LKtracker_rwlock.gen_rlock()
         self.LKtracker_wlock = self.LKtracker_rwlock.gen_wlock()
-        # frame_id of last detect result that updates the tracker
-        #self.LKtracker_last_update_frame_id = 0
         self.LKtracker_is_init = False
         self.LKtracker_previmg = None
         self.LKtracker_prevpoints = None
         self.LKtracker_boxes = None
+        self.LKtracker_last_update_frame_id = 0 # frame_id of last detect result that updates the tracker
         #self.LKtracker_feature_params = dict(maxCorners = 200, qualityLevel = 0.001, minDistance = 30)
         self.LKtracker_feature_params = dict(maxCorners = 300, qualityLevel = 0.003, minDistance = 25)
         self.LKtracker_lk_params = dict(winSize = (15, 15), maxLevel = 2, criteria = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 0.03))
@@ -88,32 +84,10 @@ class Tracker_Node(Node):
         self.get_logger().info('Tracker init done.')
         
     def camera_callback(self, msg):
-        # self.get_logger().info('Tracker received frame %d from camera, storing this frame.' % (msg.frame_id))
-        '''
-        self.frame_history_wlock.acquire()
-        self.frame_history[msg.frame_id] = self.br.imgmsg_to_cv2(msg.frame)
-        self.frame_history_wlock.release()
-        '''
         with self.frame_history_wlock:
             self.frame_history[msg.frame_id] = self.br.imgmsg_to_cv2(msg.frame)
 
     def track_callback(self, msg):
-        '''
-        self.LKtracker_rlock.acquire()
-        if(self.LKtracker_is_init == False):
-            self.get_logger().info('Tracker received frame %d from scheduler, but has been dropped due to tracker not init yet.' % (msg.frame_id))
-            self.LKtracker_rlock.release()
-        else:
-            # local tracking
-            track_time_start = time.time()
-            self.get_logger().info('Tracker received frame %d from scheduler, now using local tracking.' % (msg.frame_id))
-            track_result_msg, id_diff = self.tracking(self.br.imgmsg_to_cv2(msg.frame), msg.frame_id)
-            self.LKtracker_rlock.release()
-
-            track_result_msg.process_time = time.time() - track_time_start
-            self.track_result_publisher.publish(track_result_msg)
-            self.get_logger().info('Track result of frame %d has been published to collector. frame_delay: %d | tracking_time: %f.' % (msg.frame_id, id_diff, track_result_msg.process_time))
-        '''
         with self.LKtracker_rlock:
             if(self.LKtracker_is_init == True):
                 # local tracking
@@ -129,71 +103,23 @@ class Tracker_Node(Node):
 
     def detect_result_callback(self, msg):
         self.get_logger().info('Tracker received detect result of frame %d from detector, now updating tracker.' % (msg.frame_id))
-        '''
-        self.id_lock.acquire()
-        if(msg.frame_id > self.LKtracker_last_update_frame_id):
-            last_id = self.LKtracker_last_update_frame_id
-            self.LKtracker_last_update_frame_id = msg.frame_id
-            self.id_lock.release()
-
-            update_time_start = time.time()
-
-            self.frame_history_rlock.acquire()
-            image = self.frame_history[msg.frame_id]
-            self.frame_history_rlock.release()
-
-            self.LKtracker_wlock.acquire()
-            # new tracker init
-            gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-            self.LKtracker_previmg = gray_image
-            self.LKtracker_prevpoints = cv2.goodFeaturesToTrack(gray_image, mask = None, **self.LKtracker_feature_params)
-            self.LKtracker_boxes = msg.result_boxes
-            self.LKtracker_is_init = True
-            self.LKtracker_wlock.release()
-
-            # delete old frames
-            self.frame_history_wlock.acquire()
-            for i in range(last_id + 1, msg.frame_id + 1):
-                del self.frame_history[i]
-            self.get_logger().info('Tracker deleting %d old frames.' % (msg.frame_id - last_id))
-            self.frame_history_wlock.release()
-
-            # update last frame_id
-            #self.LKtracker_last_update_frame_id = msg.frame_id
-
-            updating_time = time.time() - update_time_start
-            self.get_logger().info('Tracker has been updated in %f seconds.' % (updating_time))
-        else:
-            self.id_lock.release()
-            self.get_logger().info('Detect result of frame %d is outdated, now dropping it.' % (msg.frame_id))
-        '''
-        flag = True
-        with self.id_lock:
-            if(msg.frame_id <= self.LKtracker_last_update_frame_id):
-                self.get_logger().info('Detect result of frame %d is outdated, now dropping it.' % (msg.frame_id))
-                flag = False
-
-        if(flag == False):
-            return
-        
-        update_time_start = time.time()
-
-        with self.frame_history_rlock:
-            image = self.frame_history[msg.frame_id]
 
         with self.LKtracker_wlock:
-            # new tracker init
-            gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-            self.LKtracker_previmg = gray_image
-            self.LKtracker_prevpoints = cv2.goodFeaturesToTrack(gray_image, mask = None, **self.LKtracker_feature_params)
-            self.LKtracker_boxes = msg.result_boxes
-            self.LKtracker_is_init = True
-        
-        with self.id_lock:
-            self.LKtracker_last_update_frame_id = msg.frame_id
-
-        updating_time = time.time() - update_time_start
-        self.get_logger().info('Tracker has been updated in %f seconds.' % (updating_time))
+            if(msg.frame_id <= self.LKtracker_last_update_frame_id):
+                self.get_logger().info('Detect result of frame %d is outdated, now dropping it.' % (msg.frame_id))
+            else:
+                update_time_start = time.time()
+                with self.frame_history_rlock:
+                    image = self.frame_history[msg.frame_id]
+                # new tracker init
+                gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+                self.LKtracker_previmg = gray_image
+                self.LKtracker_prevpoints = cv2.goodFeaturesToTrack(gray_image, mask = None, **self.LKtracker_feature_params)
+                self.LKtracker_boxes = msg.result_boxes
+                self.LKtracker_is_init = True
+                self.LKtracker_last_update_frame_id = msg.frame_id
+                updating_time = time.time() - update_time_start
+                self.get_logger().info('Tracker has been updated from detect result of frame %d in %f seconds.' % (msg.frame_id, updating_time))
 
     def tracking(self, frame, frame_id):
         nextimg = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -227,9 +153,8 @@ class Tracker_Node(Node):
             track_result.result_boxes.append(absbox)
         track_result.frame_id = frame_id
 
-        with self.id_lock:
-            track_result.last_detect_result_frame_id = self.LKtracker_last_update_frame_id
-            diff = frame_id - self.LKtracker_last_update_frame_id
+        track_result.last_detect_result_frame_id = self.LKtracker_last_update_frame_id
+        diff = frame_id - self.LKtracker_last_update_frame_id
         
         return track_result, diff
 
