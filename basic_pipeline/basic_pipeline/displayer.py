@@ -78,24 +78,24 @@ class Displayer_Node(Node):
         if(msg.method == 0):
             # detect
             result_img = get_display_img(current_frame, msg.result_boxes, 0)
-            #cv2.imshow("Displayer of " + self.name, result_img)
-            #cv2.waitKey(1)
-            cv2.imwrite('/home/silveryu1999/result/' + str(msg.current_camera_frame_id) + '.jpg', result_img)
+            cv2.imshow("Displayer of " + self.name, result_img)
+            cv2.waitKey(1)
+            #cv2.imwrite('/home/silveryu1999/result/' + str(msg.current_camera_frame_id) + '.jpg', result_img)
             self.get_logger().info('Current Frame ID: %d | Result Type: %s | Result Frame ID: %d | Total Frame Diff/Delay: %d | Total Time: %f | Server Detect Time: %f' % \
             (msg.current_camera_frame_id, "Detect", msg.display_result_frame_id, msg.current_camera_frame_id - msg.display_result_frame_id, msg.total_time, msg.server_detect_time))
         elif(msg.method == 1):
             # track
             result_img = get_display_img(current_frame, msg.result_boxes, 1)
-            #cv2.imshow("Displayer of " + self.name, result_img)
-            #cv2.waitKey(1)
-            cv2.imwrite('/home/silveryu1999/result/' + str(msg.current_camera_frame_id) + '.jpg', result_img)
+            cv2.imshow("Displayer of " + self.name, result_img)
+            cv2.waitKey(1)
+            #cv2.imwrite('/home/silveryu1999/result/' + str(msg.current_camera_frame_id) + '.jpg', result_img)
             self.get_logger().info('Current Frame ID: %d | Result Type: %s | Result Frame ID: %d | Total Frame Diff/Delay: %d (result:%d tracking:%d) | Local Tracking Time: %f' % \
             (msg.current_camera_frame_id, "Track", msg.display_result_frame_id, msg.current_camera_frame_id - msg.tracking_from_frame, msg.current_camera_frame_id - msg.display_result_frame_id, msg.display_result_frame_id - msg.tracking_from_frame, msg.local_tracking_time))
         elif(msg.method == 2):
             # origin
-            #cv2.imshow("Displayer of " + self.name, current_frame)
-            #cv2.waitKey(1)
-            cv2.imwrite('/home/silveryu1999/result/' + str(msg.current_camera_frame_id) + '.jpg', current_frame)
+            cv2.imshow("Displayer of " + self.name, current_frame)
+            cv2.waitKey(1)
+            #cv2.imwrite('/home/silveryu1999/result/' + str(msg.current_camera_frame_id) + '.jpg', current_frame)
             self.get_logger().info('Current Frame ID: %d | Result Type: %s' % (msg.current_camera_frame_id, "Origin"))
         else:
             self.get_logger().info('Displayer get undifined result.')
@@ -106,8 +106,8 @@ def main(args=None):
 
     try:
         displayer_node = Displayer_Node()
-        #executor = SingleThreadedExecutor()
-        executor = MultiThreadedExecutor(num_threads=multiprocessing.cpu_count())
+        executor = SingleThreadedExecutor()
+        #executor = MultiThreadedExecutor(num_threads=multiprocessing.cpu_count())
         executor.add_node(displayer_node)
         try:
             executor.spin()

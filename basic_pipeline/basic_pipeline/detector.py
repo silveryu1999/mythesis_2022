@@ -28,7 +28,7 @@ class Detector_Node(Node):
 
 		self.group = ReentrantCallbackGroup()
 		self.detect_listener = self.create_subscription(Detect, self.name + '_detect_frame', self.detect_callback, 10, callback_group=self.group)
-		self.detect_response_listener = self.create_subscription(DetectResponse, self.name + '_detect_response', self.response_callback, 50, callback_group=self.group)
+		self.detect_response_listener = self.create_subscription(DetectResponse, self.name + '_detect_response', self.response_callback, 10, callback_group=self.group)
 		self.detect_result_publisher = self.create_publisher(DetectResult, self.name + '_detect_result', 10, callback_group=self.group)
 
 		self.last_detect_frame_id = 0

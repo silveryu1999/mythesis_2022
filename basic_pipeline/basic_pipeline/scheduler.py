@@ -27,7 +27,7 @@ class Scheduler_Node(Node):
         self.target_server = None
         self.last_state_is_no_server = False
 
-        self.interval = 2
+        self.interval = 1
         self.counter = 0
         self.server_list = {}
         self.server_list_lock = threading.Lock()
@@ -102,7 +102,7 @@ def main(args=None):
 
     try:
         scheduler_node = Scheduler_Node()
-        executor = MultiThreadedExecutor(num_threads=multiprocessing.cpu_count())
+        executor = MultiThreadedExecutor(num_threads=4)
         executor.add_node(scheduler_node)
         try:
             executor.spin()

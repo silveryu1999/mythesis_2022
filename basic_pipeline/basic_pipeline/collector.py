@@ -43,8 +43,8 @@ class Collector_Node(Node):
         # 0: detect
         # 1: track
         # 2: camera(origin)
-        self.detect_diff_threshold = 6
-        self.track_diff_threshold = 10
+        self.detect_diff_threshold = 4
+        self.track_diff_threshold = 3
 
         self.detect_result_rwlock = rwlock.RWLockRead()
         self.detect_result_rlock = self.detect_result_rwlock.gen_rlock()
@@ -135,7 +135,7 @@ def main(args=None):
 
     try:
         collector_node = Collector_Node()
-        executor = MultiThreadedExecutor(num_threads=multiprocessing.cpu_count())
+        executor = MultiThreadedExecutor(num_threads=4)
         executor.add_node(collector_node)
         try:
             executor.spin()
