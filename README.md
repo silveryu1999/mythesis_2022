@@ -4,6 +4,7 @@ A distributed and cloud-end collaborated object detection framework based on ROS
 ****
 进度/Progression：开发中.../developing...  
 ~2022/03/06: 修复已有系统bug，除了最后的显示窗口，系统框架能完整运行  
+~2022/03/10: 系统能够完整运行，同时修改系统框架设计，新增network模块  
 ****  
 单机情境（Single Client-Server）：
 ![image text](https://github.com/sysu18364109/mythesis_2022/blob/main/pic1.png)  
