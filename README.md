@@ -12,6 +12,7 @@ A distributed and cloud-end collaborated object detection framework based on ROS
 分布式情境（Distributed: Multi-Client Multi-Server）：
 ![image text](https://github.com/sysu18364109/mythesis_2022/blob/main/pic2.png)  
 ## Prerequisites
+Testing Environment(VM is not recommended): Ubuntu20.04  
 ROS2：Galactic/Foxy  
 Python：3.8  
 OpenCV：4.5+  
