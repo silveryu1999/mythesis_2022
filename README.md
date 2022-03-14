@@ -15,7 +15,7 @@ A distributed and cloud-end collaborated object detection framework based on ROS
 ROS2版本：Galactic/Foxy  
 Python版本：3.8  
 OpenCV版本：4.5+  
-CVbridge版本:2.2  
+CVbridge版本：2.2  
 ## TO RUN  
 首先将basic_pipeline和bspipeline_interfaces复制到工作空间的src目录下  
 除源文件package.xml标出的依赖之外，需要额外进行准备配置的有[opencv](https://docs.opencv.org/4.x/index.html)、 [cv_bridge](https://github.com/ros-perception/vision_opencv/tree/ros2/cv_bridge)、 [yolov4](https://github.com/Tianxiaomo/pytorch-YOLOv4)，可以参照网上教程进行配置，保证源代码import时能找到相应模块  
