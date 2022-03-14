@@ -3,7 +3,7 @@
 A distributed and cloud-end collaborated object detection framework based on ROS2  
 一个基于ROS2实现的分布式端云协同目标检测框架  
 ## Progress  
-developing...
+developing...  
 ~2022/03/06: 修复已有系统bug，除了最后的显示窗口，系统框架能完整运行  
 ~2022/03/10: 系统能够完整运行，同时修改系统框架设计，新增network模块  
 ## Framework    
