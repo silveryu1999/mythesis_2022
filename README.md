@@ -12,8 +12,11 @@ A distributed and cloud-end collaborated object detection framework based on ROS
 分布式情境（Distributed: Multi-Client Multi-Server）：
 ![image text](https://github.com/sysu18364109/mythesis_2022/blob/main/pic2.png)  
 ****  
+## Prerequisites
 ROS2版本：Galactic/Foxy  
 Python版本：3.8  
+OpenCV版本：4.5+  
+CVbridge版本:2.2  
 ****  
 ## TO RUN  
 首先将basic_pipeline和bspipeline_interfaces复制到工作空间的src目录下  
