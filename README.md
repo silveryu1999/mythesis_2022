@@ -90,8 +90,6 @@ ros2 run basic_pipeline camera [client_name] [frame_rate]
 服务器运行：  
 最好在客户端启动前启动，避免开始的请求没被接收到  
 ```
-cd your_ros2_workspace
-. install/local_setup.bash
 ros2 run basic_pipeline server [server_name]
 ```  
 
