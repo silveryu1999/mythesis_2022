@@ -67,9 +67,9 @@ colcon build
 // 刷新ros2环境，setup.bash的位置根据你安装ros2的方式（二进制包或源代码）会有所不同
 source /opt/ros/galactic/setup.bash    // 二进制包方式
 . ~/ros2_galactic/ros2-linux/setup.bash    // 源代码方式
+  
 // 刷新本地环境，否则会找不到我们自己构建的包
-cd your_ros2_workspace
-. install/local_setup.bash
+. ~/your_ros2_workspace/install/local_setup.bash
 ```
 客户端运行：  
 每个结点都需要打开一个新终端来运行（即每个结点运行在单独的进程中），最好等其它客户端结点init完毕后，在最后才启动Camera 
