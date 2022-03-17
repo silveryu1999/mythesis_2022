@@ -31,11 +31,11 @@ Distributed: Multi-Client Multi-Server
 python3 -m pip install -U readerwriterlock
 ```
 ### ros2安装(省略)与项目构建
-#### 创建ros2工作空间：
+创建ros2工作空间：
 ```
 mkdir -p ~/your_ros2_workspace/src
 ```
-#### 复制项目文件，使得工作空间目录结构如下：
+复制项目文件，使得工作空间目录结构如下：
 ```
 .
 ├── build    (build后生成)
@@ -58,14 +58,14 @@ mkdir -p ~/your_ros2_workspace/src
     ├── tool
     └── weight    (从前面yolov4的链接可以下载权重放到这里)
 ```
-#### 运行前构建并编译：  
+运行前构建并编译：  
 ```
 cd your_ros2_workspace
 colcon build
 . install/local_setup.bash
 ``` 
-#### 刷新环境：  
-以下两条命令在每次打开一个新的终端都需要输入以刷新，如果觉得麻烦，可以将这两条刷新命令加到你的shell对应的bashrc文件中
+刷新环境：  
+注：每打开一个新的终端都需要输入以下命令刷新环境，若麻烦，可以将这两条刷新命令加到你的shell对应的bashrc文件中
 ```
 // 刷新ros2环境，以使用ros2相关命令，setup.bash的位置根据你安装ros2的方式（二进制包或源代码）会有所不同
 source /opt/ros/galactic/setup.bash    // 二进制包方式
@@ -75,7 +75,7 @@ source /opt/ros/galactic/setup.bash    // 二进制包方式
 . ~/your_ros2_workspace/install/local_setup.bash
 ```
 ### 项目运行
-#### 客户端运行：  
+客户端运行：  
 每个结点都需要打开一个新终端来运行（即每个结点运行在单独的进程中），最好等其它客户端结点init完毕后，在最后才启动Camera 
 ```
 ros2 run basic_pipeline displayer [client_name]
@@ -87,7 +87,7 @@ ros2 run basic_pipeline scheduler [client_name]
 -----------------------------------------------
 ros2 run basic_pipeline camera [client_name] [frame_rate]
 ```
-#### 服务器运行：  
+服务器运行：  
 最好在客户端启动前启动，避免开始的请求没被接收到  
 ```
 cd your_ros2_workspace
