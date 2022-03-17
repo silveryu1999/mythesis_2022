@@ -62,7 +62,7 @@ cd your_ros2_workspace
 colcon build
 . install/local_setup.bash
 ``` 
-刷新环境：
+刷新环境：  
 以下两条命令在每次打开一个新的终端都需要输入以刷新，如果觉得麻烦，可以将这两条刷新命令加到你的shell对应的bashrc文件中
 ```
 // 刷新ros2环境，以使用ros2相关命令，setup.bash的位置根据你安装ros2的方式（二进制包或源代码）会有所不同
