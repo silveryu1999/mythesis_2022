@@ -12,7 +12,7 @@ developing...
 分布式情境（Distributed: Multi-Client Multi-Server）：
 ![image text](https://github.com/sysu18364109/mythesis_2022/blob/main/pic2.png)  
 ## Prerequisites
-OS：Ubuntu20.04(VM is not recommended) / Win10(Not testing yet)  
+OS：Ubuntu20.04（不推荐使用虚拟机） / Win10（还没测试过）  
 ROS2：Galactic/Foxy  
 Python：3.8  
 OpenCV：4.5+  
