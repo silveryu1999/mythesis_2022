@@ -70,7 +70,7 @@ cd your_ros2_workspace
 . install/local_setup.bash（刷新本地环境，否则会找不到我们自己构建的包）
 ```
 客户端运行：  
-每个结点都需要新建一个终端来运行，最好等其它客户端结点init完毕后，在最后才启动Camera 
+每个结点都需要打开一个新终端来运行（即每个结点运行在单独的进程中），最好等其它客户端结点init完毕后，在最后才启动Camera 
 ```
 ros2 run basic_pipeline displayer [client_name]
 ros2 run basic_pipeline collector [client_name]
