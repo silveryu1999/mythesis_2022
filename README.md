@@ -24,9 +24,12 @@ Distributed: Multi-Client Multi-Server
 
 ## TO RUN  
 ### 获取相关依赖   
-[cv_bridge](https://github.com/ros-perception/vision_opencv/tree/ros2/cv_bridge)（含[opencv](https://docs.opencv.org/4.x/index.html)）、 [yolov4](https://github.com/Tianxiaomo/pytorch-YOLOv4)  
-参照上述两个链接进行配置（这里我已经将yolov4上传，除了权重weights），保证源代码import时能找到相应模块  
-项目中还使用了读写锁，由于python3的threading模块没有自带的读写锁，python3中也没有任何包含读写锁的官方模块，因此使用了第三方实现的读写锁：[readerwriterlock 1.0.9](https://pypi.org/project/readerwriterlock/)
+* [cv_bridge](https://github.com/ros-perception/vision_opencv/tree/ros2/cv_bridge)
+* [opencv](https://docs.opencv.org/4.x/index.html)
+* [yolov4](https://github.com/Tianxiaomo/pytorch-YOLOv4)  
+* [readerwriterlock 1.0.9](https://pypi.org/project/readerwriterlock/)
+参照cv_bridge链接进行配置（这里我已经将yolov4上传，除了权重weights），保证源代码import时能找到相应模块  
+项目中还使用了读写锁，由于python3的threading模块没有自带的读写锁，python3中也没有任何包含读写锁的官方模块，因此使用了第三方实现的读写锁  
 ```
 python3 -m pip install -U readerwriterlock
 ```
