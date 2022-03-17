@@ -67,7 +67,7 @@ colcon build
 // 刷新ros2环境，setup.bash的位置根据你安装ros2的方式（二进制包或源代码）会有所不同
 source /opt/ros/galactic/setup.bash    // 二进制包方式
 . ~/ros2_galactic/ros2-linux/setup.bash    // 源代码方式
-  
+
 // 刷新本地环境，否则会找不到我们自己构建的包
 . ~/your_ros2_workspace/install/local_setup.bash
 ```
