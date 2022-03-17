@@ -71,7 +71,7 @@ cd your_ros2_workspace
 ```
 客户端运行：  
 每个结点都需要新建一个终端来运行，最好等其它客户端结点init完毕后，在最后才启动Camera 
-'''
+```
 ros2 run basic_pipeline displayer [client_name]
 ros2 run basic_pipeline collector [client_name]
 ros2 run basic_pipeline tracker [client_name]
