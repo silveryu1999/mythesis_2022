@@ -23,20 +23,19 @@ Distributed: Multi-Client Multi-Server
 * CVbridge：2.2+  
 
 ## TO RUN  
-### 获取相关依赖  
-首先将basic_pipeline和bspipeline_interfaces复制到工作空间的src目录下  
-除源文件package.xml标出的依赖之外，需要额外进行准备配置的有 [cv_bridge](https://github.com/ros-perception/vision_opencv/tree/ros2/cv_bridge)（含[opencv](https://docs.opencv.org/4.x/index.html)）、 [yolov4](https://github.com/Tianxiaomo/pytorch-YOLOv4)，可以参照网上教程进行配置，保证源代码import时能找到相应模块  
-项目中使用了读写锁，由于python3的threading模块没有自带的读写锁，python3中也没有任何包含读写锁的官方模块，因此使用了第三方实现的读写锁：[readerwriterlock 1.0.9](https://pypi.org/project/readerwriterlock/)
+### 获取相关依赖   
+[cv_bridge](https://github.com/ros-perception/vision_opencv/tree/ros2/cv_bridge)（含[opencv](https://docs.opencv.org/4.x/index.html)）、 [yolov4](https://github.com/Tianxiaomo/pytorch-YOLOv4)  
+参照上述两个链接进行配置（这里我已经将yolov4上传，除了权重weights），保证源代码import时能找到相应模块  
+项目中还使用了读写锁，由于python3的threading模块没有自带的读写锁，python3中也没有任何包含读写锁的官方模块，因此使用了第三方实现的读写锁：[readerwriterlock 1.0.9](https://pypi.org/project/readerwriterlock/)
 ```
 python3 -m pip install -U readerwriterlock
 ```
-### ROS2安装（省略）
 ### 项目构建
 创建ros2工作空间：
 ```
 mkdir -p ~/your_ros2_workspace/src
 ```
-复制项目文件，使得工作空间目录结构如下：
+从项目中将basic_pipeline和bspipeline_interfaces文件夹复制到工作空间的src目录下，复制yolov4文件夹到工作空间下，从上面cv_bridge链接获取vision_opencv文件夹到工作空间下。此时，工作空间目录结构如下：
 ```
 .
 ├── build    (build后生成)
