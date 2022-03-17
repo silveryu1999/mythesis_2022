@@ -42,7 +42,7 @@ mkdir -p ~/your_ros2_workspace/src
 ├── src
 │   ├── basic_pipeline
 │   └── bspipeline_interfaces
-├── vision_opencv
+├── vision_opencv    (注意参考前面cv_bridge的链接，安装相关依赖并且build完毕)
 │   ├── cv_bridge
 │   ├── image_geometry
 │   ├── opencv_tests
