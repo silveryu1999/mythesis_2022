@@ -52,10 +52,10 @@ cd your_ros2_workspace
 ros2 run basic_pipeline server [server_name]
 ```  
 ## TO DO  
-- [] 传输用于检测的图片时，对图片进行压缩  
-- [] 新增networker，完成对实际网络吞吐量的仿真  
-- [] collector对结果进行得分评估，包含准确率(IOU)、召回率、F1-Score三个指标  
-- [] scheduler根据网络延迟和结果得分评估调整检测和跟踪间隔  
-- [] networker和server之间的交互从message方式替换成TCP socket，server将不再运行在ros2结点上，同时修改client与server之间的发现方式  
-- [] client之间的结点通过共享内存方式减少传递帧的开销  
+-[] 传输用于检测的图片时，对图片进行压缩  
+-[] 新增networker，完成对实际网络吞吐量的仿真  
+-[] collector对结果进行得分评估，包含准确率(IOU)、召回率、F1-Score三个指标  
+-[] scheduler根据网络延迟和结果得分评估调整检测和跟踪间隔  
+-[] networker和server之间的交互从message方式替换成TCP socket，server将不再运行在ros2结点上，同时修改client与server之间的发现方式  
+-[] client之间的结点通过共享内存方式减少传递帧的开销  
 
