@@ -18,9 +18,9 @@ Distributed: Multi-Client Multi-Server
 ## Prerequisites
 * OS：Ubuntu20.04（不推荐使用虚拟机） / Win10（还没测试过）  
 * ROS2：Galactic/Foxy  
-* Python：3.8  
+* Python：3.8+  
 * OpenCV：4.5+  
-* CVbridge：2.2  
+* CVbridge：2.2+  
 
 ## TO RUN  
 ### 获取相关依赖  
@@ -30,7 +30,8 @@ Distributed: Multi-Client Multi-Server
 ```
 python3 -m pip install -U readerwriterlock
 ```
-### ros2安装(省略)与项目构建
+### ROS2安装（省略）
+### 项目构建
 创建ros2工作空间：
 ```
 mkdir -p ~/your_ros2_workspace/src
