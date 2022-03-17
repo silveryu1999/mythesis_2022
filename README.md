@@ -29,7 +29,34 @@ Distributed: Multi-Client Multi-Server
 ```
 python3 -m pip install -U readerwriterlock
 ```
-运行前编译：  
+创建ros2工作空间：
+```
+mkdir -p ~/your_ros2_workspace/src
+```
+复制项目文件，使得工作空间目录结构如下：
+```
+.
+├── build    (build后生成)
+├── install    (build后生成)
+├── log    (build后生成)
+├── src
+│   ├── basic_pipeline
+│   └── bspipeline_interfaces
+├── vision_opencv
+│   ├── cv_bridge
+│   ├── image_geometry
+│   ├── opencv_tests
+│   ├── README.md
+│   └── vision_opencv
+└── yolov4
+    ├── cfg
+    ├── data
+    ├── __init__.py
+    ├── __pycache__
+    ├── tool
+    └── weight
+```
+运行前构建并编译：  
 ```
 cd your_ros2_workspace
 colcon build
