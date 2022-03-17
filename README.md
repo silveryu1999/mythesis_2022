@@ -1,22 +1,27 @@
 # mythesis_2022  
+
 ## Intro  
 A distributed and cloud-end collaborated object detection framework based on ROS2  
 一个基于ROS2实现的分布式端云协同目标检测框架  
+
 ## Progress  
 developing...  
 ~2022/03/06: 修复已有系统bug，除了最后的显示窗口，系统框架能完整运行  
 ~2022/03/10: 系统能够完整运行，同时修改系统框架设计，新增network模块  
+
 ## Framework    
-#### 单机情境（Single Client-Server）
+### Single Client-Server
 ![image text](https://github.com/sysu18364109/mythesis_2022/blob/main/pic1.png)  
-#### 分布式情境（Distributed: Multi-Client Multi-Server）
+### Distributed: Multi-Client Multi-Server
 ![image text](https://github.com/sysu18364109/mythesis_2022/blob/main/pic2.png)  
+
 ## Prerequisites
-OS：Ubuntu20.04（不推荐使用虚拟机） / Win10（还没测试过）  
-ROS2：Galactic/Foxy  
-Python：3.8  
-OpenCV：4.5+  
-CVbridge：2.2  
+* OS：Ubuntu20.04（不推荐使用虚拟机） / Win10（还没测试过）  
+* ROS2：Galactic/Foxy  
+* Python：3.8  
+* OpenCV：4.5+  
+* CVbridge：2.2  
+
 ## TO RUN  
 首先将basic_pipeline和bspipeline_interfaces复制到工作空间的src目录下  
 除源文件package.xml标出的依赖之外，需要额外进行准备配置的有[opencv](https://docs.opencv.org/4.x/index.html)、 [cv_bridge](https://github.com/ros-perception/vision_opencv/tree/ros2/cv_bridge)、 [yolov4](https://github.com/Tianxiaomo/pytorch-YOLOv4)，可以参照网上教程进行配置，保证源代码import时能找到相应模块  
