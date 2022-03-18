@@ -63,7 +63,7 @@ mkdir -p ~/your_ros2_workspace/src
 ```
 运行前构建并编译：  
 ```
-cd your_ros2_workspace
+cd ~/your_ros2_workspace
 colcon build
 ``` 
 刷新环境：  
