@@ -67,7 +67,7 @@ cd your_ros2_workspace
 colcon build
 ``` 
 刷新环境：  
-注：每打开一个新的终端都需要输入以下命令刷新环境，若麻烦，可以将这两条刷新命令加到你的shell对应的bashrc文件中
+注：每打开一个新终端都要输入以下命令刷新环境，麻烦的话可以将这两条命令加到你的shell对应的bashrc文件中
 ```
 // 刷新ros2环境，以使用ros2相关命令，setup.bash的位置根据你安装ros2的方式（二进制包或源代码）会有所不同
 source /opt/ros/galactic/setup.bash    // 二进制包方式
