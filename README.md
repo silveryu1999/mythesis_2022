@@ -1,8 +1,8 @@
 # mythesis_2022  
 
 ## Intro  
-A distributed and cloud-end collaborated object detection framework based on ROS2  
-一个基于ROS2实现的分布式端云协同目标检测框架  
+A distributed and cloud-end collaborated real-time object detection framework based on ROS2  
+一个基于ROS2实现的分布式端云协同实时目标检测框架  
 
 ## Progress  
 developing...  
