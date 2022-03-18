@@ -65,7 +65,6 @@ mkdir -p ~/your_ros2_workspace/src
 ```
 cd your_ros2_workspace
 colcon build
-. install/local_setup.bash
 ``` 
 刷新环境：  
 注：每打开一个新的终端都需要输入以下命令刷新环境，若麻烦，可以将这两条刷新命令加到你的shell对应的bashrc文件中
