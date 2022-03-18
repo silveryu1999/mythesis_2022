@@ -57,7 +57,6 @@ mkdir -p ~/your_ros2_workspace/src
     ├── cfg
     ├── data
     ├── __init__.py
-    ├── __pycache__
     ├── tool
     └── weight    (从前面yolov4的链接可以下载权重放到这里)
 ```
