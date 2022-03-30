@@ -5,14 +5,10 @@ import multiprocessing
 
 from rclpy.callback_groups import ReentrantCallbackGroup
 from rclpy.executors import MultiThreadedExecutor
-from bspipeline_interfaces.msg import Camera
 from bspipeline_interfaces.msg import Detect
 from bspipeline_interfaces.msg import DetectRequest
 from bspipeline_interfaces.msg import DetectResponse
 from bspipeline_interfaces.msg import DetectResult
-from sensor_msgs.msg import Image # Image is the message type
-from cv_bridge import CvBridge # Package to convert between ROS and OpenCV Images
-import cv2 # OpenCV library
 import rclpy
 from rclpy.node import Node
 

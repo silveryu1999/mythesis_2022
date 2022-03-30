@@ -23,6 +23,7 @@ setup(
         	'camera = basic_pipeline.camera:main',
         	'scheduler = basic_pipeline.scheduler:main',
         	'detector = basic_pipeline.detector:main',
+        	'networker = basic_pipeline.networker:main',
         	'tracker = basic_pipeline.tracker:main',
         	'collector = basic_pipeline.collector:main',
         	'displayer = basic_pipeline.displayer:main',

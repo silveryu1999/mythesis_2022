@@ -1,8 +1,6 @@
 import sys
 import time
-import threading
 import multiprocessing
-
 from readerwriterlock import rwlock
 from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
 from rclpy.callback_groups import ReentrantCallbackGroup
@@ -11,7 +9,6 @@ from bspipeline_interfaces.msg import Camera
 from bspipeline_interfaces.msg import AbsBoxes
 from bspipeline_interfaces.msg import DetectResult
 from bspipeline_interfaces.msg import TrackResult
-from sensor_msgs.msg import Image # Image is the message type
 from cv_bridge import CvBridge # Package to convert between ROS and OpenCV Images
 import cv2 # OpenCV library
 import rclpy

@@ -2,9 +2,7 @@ import sys
 import os
 import time
 import threading
-import multiprocessing
 import torch
-
 from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
 from rclpy.callback_groups import ReentrantCallbackGroup
 from rclpy.executors import MultiThreadedExecutor
@@ -12,7 +10,6 @@ from bspipeline_interfaces.msg import AbsBoxes
 from bspipeline_interfaces.msg import DetectRequest
 from bspipeline_interfaces.msg import DetectResponse
 from bspipeline_interfaces.msg import Srvinfo
-from sensor_msgs.msg import Image # Image is the message type
 from cv_bridge import CvBridge # Package to convert between ROS and OpenCV Images
 import cv2 # OpenCV library
 
@@ -35,10 +32,9 @@ class DetectService(Node):
         super().__init__(self.name)
 
         self.srv_name = self.name + '_bspip'
-        self.group1 = ReentrantCallbackGroup()
-        self.group2 = ReentrantCallbackGroup()
-        self.req_listener = self.create_subscription(DetectRequest, self.name + '_detect_request', self.frames_callback, 10, callback_group=self.group2)
-        self.pub = self.create_publisher(Srvinfo, 'server_info', 10, callback_group=self.group1)
+        self.group = ReentrantCallbackGroup()
+        self.req_listener = self.create_subscription(DetectRequest, self.name + '_detect_request', self.frames_callback, 10, callback_group=self.group)
+        self.pub = self.create_publisher(Srvinfo, 'server_info', 10, callback_group=self.group)
 
         # Used to convert between ROS and OpenCV images
         self.br = CvBridge()
@@ -67,7 +63,7 @@ class DetectService(Node):
         self.process_time_count = 0
         self.process_time_last_avg_time = 0
 
-        self.srv_timer = self.create_timer(1.0, self.srvinfo_publisher, callback_group=self.group1)
+        self.srv_timer = self.create_timer(1.0, self.srvinfo_publisher, callback_group=self.group)
         self.get_logger().info('Server init done.')
 
     def frames_callback(self, msg):
@@ -118,7 +114,7 @@ class DetectService(Node):
             if(self.process_time_list_size < self.time_span):
                 self.process_time_list_size += 1
 
-        pub = self.create_publisher(DetectResponse, msg.client_name + '_detect_response', 10, callback_group=self.group1)
+        pub = self.create_publisher(DetectResponse, msg.client_name + '_detect_response', 10, callback_group=self.group)
         pub.publish(response)
         del pub
 
@@ -164,7 +160,7 @@ def main():
 
     try:
         detect_service = DetectService()
-        executor = MultiThreadedExecutor(num_threads=3)
+        executor = MultiThreadedExecutor(num_threads=4)
         executor.add_node(detect_service)
         try:
             executor.spin()

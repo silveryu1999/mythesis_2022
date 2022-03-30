@@ -1,8 +1,6 @@
 import sys
 import time
-
 from bspipeline_interfaces.msg import Camera
-from sensor_msgs.msg import Image # Image is the message type
 from cv_bridge import CvBridge # Package to convert between ROS and OpenCV Images
 import cv2 # OpenCV library
 import rclpy
@@ -21,7 +19,7 @@ class Camera_Node(Node):
                 self.frame_rate = int(sys.argv[1])
                 self.name = 'anonymous_client'
             else:
-                self.frame_rate = 30
+                self.frame_rate = 15
                 self.name = sys.argv[1]
             self.init_flag = True
         elif(len(sys.argv) == 3 and sys.argv[2].isdigit() == True):
