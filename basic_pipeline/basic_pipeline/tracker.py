@@ -94,7 +94,7 @@ class Tracker_Node(Node):
 
                 track_result_msg.process_time = time.time() - track_time_start
                 self.track_result_publisher.publish(track_result_msg)
-                self.get_logger().info('Track result of frame %d has been published to collector. frame_delay: %d | tracking_time: %f.' % (msg.frame_id, id_diff, track_result_msg.process_time))
+                self.get_logger().info('Track result of frame %d has been published to collector. frame_delay: %d | tracking_time: %fs.' % (msg.frame_id, id_diff, track_result_msg.process_time))
             else:
                 self.get_logger().info('Tracker received frame %d from scheduler, but has been dropped due to tracker not init yet.' % (msg.frame_id))
 

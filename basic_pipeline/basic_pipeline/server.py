@@ -3,6 +3,7 @@ import os
 import time
 import threading
 import torch
+import numpy as np
 from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
 from rclpy.callback_groups import ReentrantCallbackGroup
 from rclpy.executors import MultiThreadedExecutor
@@ -12,14 +13,11 @@ from bspipeline_interfaces.msg import DetectResponse
 from bspipeline_interfaces.msg import Srvinfo
 from cv_bridge import CvBridge # Package to convert between ROS and OpenCV Images
 import cv2 # OpenCV library
-
-sys.path.append(os.getcwd())
-# print(sys.path)
-from yolov4 import *
-import numpy as np
-
 import rclpy
 from rclpy.node import Node
+sys.path.append(os.getcwd()) # adding the current directory to the path, so as to import yolov4
+# print(sys.path)
+from yolov4 import *
 
 
 class DetectService(Node):
@@ -102,6 +100,7 @@ class DetectService(Node):
         response.server_name = self.name
         response.width = width
         response.height = height
+        response.network_delay = msg.network_delay
         response.returning_timestamp = msg.sending_timestamp
         time_end = time.time()
         frame_processing_time = time_end - time_start

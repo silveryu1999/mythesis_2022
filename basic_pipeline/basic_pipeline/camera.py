@@ -11,7 +11,7 @@ class Camera_Node(Node):
 
     def __init__(self):
         if(len(sys.argv) == 1):
-            self.frame_rate = 15
+            self.frame_rate = 10
             self.name = 'anonymous_client'
             self.init_flag = True
         elif(len(sys.argv) == 2):
@@ -19,7 +19,7 @@ class Camera_Node(Node):
                 self.frame_rate = int(sys.argv[1])
                 self.name = 'anonymous_client'
             else:
-                self.frame_rate = 15
+                self.frame_rate = 10
                 self.name = sys.argv[1]
             self.init_flag = True
         elif(len(sys.argv) == 3 and sys.argv[2].isdigit() == True):
@@ -31,10 +31,7 @@ class Camera_Node(Node):
 
         if(self.init_flag == True):
             super().__init__(self.name + '_camera')
-
-            self.camera_topic = self.name + '_camera_frame'
-            self.publisher_ = self.create_publisher(Camera, self.camera_topic, 10)
-
+            
             # Create a VideoCapture object
             # The argument '0' gets the default webcam.
             self.cap = cv2.VideoCapture("/home/silveryu1999/video.mp4")
@@ -43,6 +40,7 @@ class Camera_Node(Node):
 
             timer_period = 1 / self.frame_rate  # seconds
             self.sending_frame_id = 1
+            self.camera_publisher = self.create_publisher(Camera, self.name + '_camera_frame', 10)
             self.timer = self.create_timer(timer_period, self.timer_callback)
             self.get_logger().info('Camera init done.')
         else:
@@ -58,8 +56,8 @@ class Camera_Node(Node):
             camera.frame = self.br.cv2_to_imgmsg(frame)
             camera.frame_rate = self.frame_rate
             camera.timestamp = time.time()
-            self.publisher_.publish(camera)
-            self.get_logger().info('Client camera sending frame %d' % (self.sending_frame_id))
+            self.camera_publisher.publish(camera)
+            self.get_logger().info('Client camera sending frame %d, size: %dB' % (self.sending_frame_id, sys.getsizeof(frame)))
             self.sending_frame_id += 1
 
 

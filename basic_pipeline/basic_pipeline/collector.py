@@ -50,37 +50,18 @@ class Collector_Node(Node):
         
         self.group1 = MutuallyExclusiveCallbackGroup()
         self.group2 = MutuallyExclusiveCallbackGroup()
-        self.group3 = ReentrantCallbackGroup()
-        self.camera_listener = self.create_subscription(Camera, self.name + '_camera_frame', self.camera_callback, 10, callback_group=self.group3)
-        self.detect_result_listener = self.create_subscription(DetectResult, self.name + '_detect_result', self.detect_result_callback, 10, callback_group=self.group1)
-        self.track_result_listener = self.create_subscription(TrackResult, self.name + '_track_result', self.track_result_callback, 10, callback_group=self.group2)
-        self.display_result_publisher = self.create_publisher(DisplayResult, self.name + '_display_result', 10, callback_group=self.group3)
+        self.group3 = MutuallyExclusiveCallbackGroup()
+        self.group4 = ReentrantCallbackGroup()
+        self.camera_listener = self.create_subscription(Camera, self.name + '_camera_frame', self.camera_callback, 10, callback_group=self.group1)
+        self.detect_result_listener = self.create_subscription(DetectResult, self.name + '_detect_result', self.detect_result_callback, 10, callback_group=self.group2)
+        self.track_result_listener = self.create_subscription(TrackResult, self.name + '_track_result', self.track_result_callback, 10, callback_group=self.group3)
+        self.display_result_publisher = self.create_publisher(DisplayResult, self.name + '_display_result', 10, callback_group=self.group4)
 
-        # 0: detect
-        # 1: track
-        # 2: camera(origin)
-        self.detect_diff_threshold = 4
-        self.track_diff_threshold = 3
-
-        self.detect_result_rwlock = rwlock.RWLockRead()
-        self.detect_result_rlock = self.detect_result_rwlock.gen_rlock()
-        self.detect_result_wlock = self.detect_result_rwlock.gen_wlock()
-        self.detect_result_is_init = False
-        self.detect_result_boxes = None
-        self.detect_result_frame_id = 0
-        self.detect_result_total_time = 0
-        self.detect_result_process_time = 0
-        self.detect_result_flight_time = 0
-        self.detect_result_server_name = None
-
-        self.track_result_rwlock = rwlock.RWLockRead()
-        self.track_result_rlock = self.track_result_rwlock.gen_rlock()
-        self.track_result_wlock = self.track_result_rwlock.gen_wlock()
-        self.track_result_is_init = False
-        self.track_result_boxes = None
-        self.track_result_frame_id = 0
-        self.track_result_process_time = 0
-        self.track_result_last_detect_update_id = 0
+        self.camera_current_frame_lock = rwlock.RWLockFair()
+        self.camera_current_frame_rlock = self.camera_current_frame_lock.gen_rlock()
+        self.camera_current_frame_wlock = self.camera_current_frame_lock.gen_wlock()
+        self.camera_current_frame = None
+        self.camera_current_frame_id = 0
 
         # loading ground truth
         self.ground_truth = []
@@ -96,91 +77,50 @@ class Collector_Node(Node):
         self.get_logger().info('Collector init done.')
 
     def camera_callback(self, msg):
-        current_frame_id = msg.frame_id
-        detect_show_flag = False
-        track_show_flag = False
+        result = DisplayResult()
+        result.method = 2
 
-        d_result = DisplayResult()
-        t_result = DisplayResult()
-        d_result.frame = msg.frame
-        d_result.current_camera_frame_id = current_frame_id
-        t_result.frame = msg.frame
-        t_result.current_camera_frame_id = current_frame_id
-
-        with self.detect_result_rlock:
-            if(self.detect_result_is_init == True):
-                detect_show_flag = True
-                d_result.method = 0
-                d_result.display_result_frame_id = self.detect_result_frame_id
-                d_result.result_boxes = self.detect_result_boxes
-                d_result.total_time = self.detect_result_total_time
-                d_result.server_detect_time = self.detect_result_process_time
-                d_pre, d_rec, d_f1 = self.cal_performance(current_frame_id, self.detect_result_boxes)
-
-        with self.track_result_rlock:
-            if(self.track_result_is_init == True):
-                track_show_flag = True
-                t_result.method = 1
-                t_result.display_result_frame_id = self.track_result_frame_id
-                t_result.result_boxes = self.track_result_boxes
-                t_result.local_tracking_time = self.track_result_process_time
-                t_result.tracking_from_frame = self.track_result_last_detect_update_id
-                t_pre, t_rec, t_f1 = self.cal_performance(current_frame_id, self.track_result_boxes)
-
-        if(detect_show_flag == True and track_show_flag == True):
-            if(d_f1 >= t_f1):
-                d_result.precision = d_pre
-                d_result.recall = d_rec
-                d_result.f1_score = d_f1
-                self.display_result_publisher.publish(d_result)
-                self.get_logger().info('Display result of frame %d has been published to the displayer.' % (current_frame_id))
-            else:
-                t_result.precision = t_pre
-                t_result.recall = t_rec
-                t_result.f1_score = t_f1
-                self.display_result_publisher.publish(t_result)
-                self.get_logger().info('Display result of frame %d has been published to the displayer.' % (current_frame_id))
-        elif(detect_show_flag == True or track_show_flag == True):
-            if(detect_show_flag == True):
-                d_result.precision = d_pre
-                d_result.recall = d_rec
-                d_result.f1_score = d_f1
-                self.display_result_publisher.publish(d_result)
-                self.get_logger().info('Display result of frame %d has been published to the displayer.' % (current_frame_id))
-            else:
-                t_result.precision = t_pre
-                t_result.recall = t_rec
-                t_result.f1_score = t_f1
-                self.display_result_publisher.publish(t_result)
-                self.get_logger().info('Display result of frame %d has been published to the displayer.' % (current_frame_id))
-        else:
-            d_result.method = 2
-            self.display_result_publisher.publish(d_result)
-            self.get_logger().info('Display result of frame %d has been published to the displayer.' % (current_frame_id))
+        with self.camera_current_frame_wlock:
+            self.camera_current_frame = msg.frame
+            self.camera_current_frame_id = msg.frame_id
+        
+        result.frame = msg.frame
+        result.current_camera_frame_id = msg.frame_id
+        self.display_result_publisher.publish(result)
+        self.get_logger().info('Origin frame %d has been published to the displayer.' % (msg.frame_id))
 
     def detect_result_callback(self, msg):
-        with self.detect_result_wlock:
-            if(self.detect_result_is_init == False):
-                self.detect_result_is_init = True
-            
-            if(msg.frame_id > self.detect_result_frame_id):
-                self.detect_result_boxes = msg.result_boxes
-                self.detect_result_frame_id = msg.frame_id
-                self.detect_result_total_time = msg.total_time
-                self.detect_result_process_time = msg.process_time
-                self.detect_result_flight_time = msg.flight_time
-                self.detect_result_server_name = msg.server_name
-    
-    def track_result_callback(self, msg):
-        with self.track_result_wlock:
-            if(self.track_result_is_init == False):
-                self.track_result_is_init = True
+        result = DisplayResult()
+        result.method = 0
 
-            if(msg.frame_id > self.track_result_frame_id):
-                self.track_result_boxes = msg.result_boxes
-                self.track_result_frame_id = msg.frame_id
-                self.track_result_process_time = msg.process_time
-                self.track_result_last_detect_update_id = msg.last_detect_result_frame_id
+        with self.camera_current_frame_rlock:
+            result.frame = self.camera_current_frame
+            result.current_camera_frame_id = self.camera_current_frame_id
+
+        result.display_result_frame_id = msg.frame_id
+        result.result_boxes = msg.result_boxes
+        result.total_time = msg.total_time
+        result.network_delay = msg.network_delay
+        result.server_detect_time = msg.process_time
+        result.precision, result.recall, result.f1_score = self.cal_performance(result.current_camera_frame_id, msg.result_boxes)
+        self.display_result_publisher.publish(result)
+        self.get_logger().info('Detect result of frame %d has been published to the displayer.' % (msg.frame_id))
+        
+    def track_result_callback(self, msg):
+        result = DisplayResult()
+        result.method = 1
+
+        with self.camera_current_frame_rlock:
+            result.frame = self.camera_current_frame
+            result.current_camera_frame_id = self.camera_current_frame_id
+
+        result.display_result_frame_id = msg.frame_id
+        result.result_boxes = msg.result_boxes
+        result.local_tracking_time = msg.process_time
+        result.tracking_from_frame = msg.last_detect_result_frame_id
+        result.precision, result.recall, result.f1_score = self.cal_performance(result.current_camera_frame_id, msg.result_boxes)
+        self.display_result_publisher.publish(result)
+        self.get_logger().info('Track result of frame %d has been published to the displayer.' % (msg.frame_id))
 
     def cal_performance(self, gt_frame_id, target_boxes):
         # gt_boxes是ground truth中的boxes
@@ -203,7 +143,6 @@ class Collector_Node(Node):
                 if iou > max_iou:
                     max_iou = iou
                     max_index = j
-            # if max_iou >= 0.5 and gt_boxes[max_index][0] == target_boxes[i].name and is_track[max_index] == 0:
             if max_iou >= 0.5 and gt_boxes[max_index][0] == target_boxes[i].name and is_track[max_index] == 0:
                 hit += 1
                 is_track[max_index] = 1

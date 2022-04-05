@@ -5,6 +5,7 @@ AbsBoxes[] result_boxes
 uint64 method
 float64 total_time
 float64 server_detect_time
+float64 network_delay
 float64 local_tracking_time
 uint64 tracking_from_frame
 float64 precision
