@@ -1,3 +1,4 @@
+import os
 import sys
 import time
 from bspipeline_interfaces.msg import Camera
@@ -10,22 +11,66 @@ from rclpy.node import Node
 class Camera_Node(Node):
 
     def __init__(self):
-        if(len(sys.argv) == 1):
+        # Command:
+        # ros2 run basic_pipeline camera [client_name] [frame_rate] [video_path]
+        # Example:
+        # ros2 run basic_pipeline camera client1 10 ./video.mp4
+        # Arguments:
+        # (Arguments can be skipped if the default value would like to be used, but others must be specified in the order mentioned above.)
+        # (Argument types: optional or necessary)
+        # client_name: optional, value: the client name, if not set, 'anonymous_client' will be default.
+        # frame_rate: optional, value: the frame rate of capturing, if not set, 10 will be default.
+        # video_path: necessary, value: a specific video file path or 0 (aka the default webcam of the computer).
+
+        if(len(sys.argv) == 2):
             self.frame_rate = 10
             self.name = 'anonymous_client'
-            self.init_flag = True
-        elif(len(sys.argv) == 2):
+            if(sys.argv[1].isdigit() == True and sys.argv[1] == '0'):
+                self.video_path = None
+                self.init_flag = True
+            else:
+                if(os.path.exists(sys.argv[1]) == True):
+                    self.video_path = sys.argv[1]
+                    self.init_flag = True
+                else:
+                    self.init_flag = False
+        elif(len(sys.argv) == 3):
             if(sys.argv[1].isdigit() == True):
                 self.frame_rate = int(sys.argv[1])
                 self.name = 'anonymous_client'
+                if(sys.argv[2].isdigit() == True and sys.argv[2] == '0'):
+                    self.video_path = None
+                    self.init_flag = True
+                else:
+                    if(os.path.exists(sys.argv[2]) == True):
+                        self.video_path = sys.argv[2]
+                        self.init_flag = True
+                    else:
+                        self.init_flag = False
             else:
                 self.frame_rate = 10
                 self.name = sys.argv[1]
-            self.init_flag = True
-        elif(len(sys.argv) == 3 and sys.argv[2].isdigit() == True):
+                if(sys.argv[2].isdigit() == True and sys.argv[2] == '0'):
+                    self.video_path = None
+                    self.init_flag = True
+                else:
+                    if(os.path.exists(sys.argv[2]) == True):
+                        self.video_path = sys.argv[2]
+                        self.init_flag = True
+                    else:
+                        self.init_flag = False
+        elif(len(sys.argv) == 4):
             self.frame_rate = int(sys.argv[2])
             self.name = sys.argv[1]
-            self.init_flag = True
+            if(sys.argv[3].isdigit() == True and sys.argv[3] == '0'):
+                self.video_path = None
+                self.init_flag = True
+            else:
+                if(os.path.exists(sys.argv[3]) == True):
+                    self.video_path = sys.argv[3]
+                    self.init_flag = True
+                else:
+                    self.init_flag = False
         else:
             self.init_flag = False
 
@@ -34,7 +79,10 @@ class Camera_Node(Node):
             
             # Create a VideoCapture object
             # The argument '0' gets the default webcam.
-            self.cap = cv2.VideoCapture("/home/silveryu1999/video.mp4")
+            if(self.video_path == None):
+                self.cap = cv2.VideoCapture(0)
+            else:
+                self.cap = cv2.VideoCapture(self.video_path)
             # Used to convert between ROS and OpenCV images
             self.br = CvBridge()
 
@@ -45,8 +93,9 @@ class Camera_Node(Node):
             self.get_logger().info('Camera init done.')
         else:
             super().__init__('camera')
-            self.get_logger().info('Camera init failed: You should specify client name and frame rate through the command line.')
-            self.get_logger().info('Command: ros2 run basic_pipeline camera [client name] [frame rate]')
+            self.get_logger().info('Camera init failed. Check arguments and the video file path.')
+            self.get_logger().info('Command: ros2 run basic_pipeline camera [client_name] [frame_rate] [video_path]')
+            self.get_logger().info('Optional arguments: [client_name] [frame_rate] | Necessary arguments: [video_path]')
 
     def timer_callback(self):
         ret, frame = self.cap.read()
@@ -57,7 +106,7 @@ class Camera_Node(Node):
             camera.frame_rate = self.frame_rate
             camera.timestamp = time.time()
             self.camera_publisher.publish(camera)
-            self.get_logger().info('Client camera sending frame %d, size: %dB' % (self.sending_frame_id, sys.getsizeof(frame)))
+            self.get_logger().info('Client camera sending frame %d' % (self.sending_frame_id))
             self.sending_frame_id += 1
 
 

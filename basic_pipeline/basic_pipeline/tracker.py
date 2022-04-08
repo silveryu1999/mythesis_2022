@@ -43,6 +43,15 @@ def Point_is_in_box(point, box):
 class Tracker_Node(Node):
 
     def __init__(self):
+        # Command:
+        # ros2 run basic_pipeline tracker [client_name]
+        # Example:
+        # ros2 run basic_pipeline tracker client1
+        # Arguments:
+        # (Arguments can be skipped if the default value would like to be used, but others must be specified in the order mentioned above.)
+        # (Argument types: optional or necessary)
+        # client_name: optional, value: the client name, if not set, 'anonymous_client' will be default.
+
         if(len(sys.argv) == 2):
             self.name = sys.argv[1]
         else:
@@ -74,7 +83,7 @@ class Tracker_Node(Node):
         self.LKtracker_prevpoints = None
         self.LKtracker_boxes = None
         self.LKtracker_last_update_frame_id = 0 # frame_id of last detect result that updates the tracker
-        #self.LKtracker_feature_params = dict(maxCorners = 200, qualityLevel = 0.001, minDistance = 30)
+        # self.LKtracker_feature_params = dict(maxCorners = 200, qualityLevel = 0.001, minDistance = 30)
         self.LKtracker_feature_params = dict(maxCorners = 300, qualityLevel = 0.003, minDistance = 25)
         self.LKtracker_lk_params = dict(winSize = (15, 15), maxLevel = 2, criteria = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 0.03))
 

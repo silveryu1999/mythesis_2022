@@ -23,6 +23,15 @@ from yolov4 import *
 class DetectService(Node):
 
     def __init__(self):
+        # Command:
+        # ros2 run basic_pipeline server [server_name]
+        # Example:
+        # ros2 run basic_pipeline server server1
+        # Arguments:
+        # (Arguments can be skipped if the default value would like to be used, but others must be specified in the order mentioned above.)
+        # (Argument types: optional or necessary)
+        # server_name: optional, value: the server name, if not set, 'anony_server' will be default.
+
         if(len(sys.argv) == 2):
             self.name = sys.argv[1]
         else:
@@ -87,14 +96,14 @@ class DetectService(Node):
         response = DetectResponse()
 
         for i in range(len(boxes_zero)):
-            response_boxes = AbsBoxes()
-            response_boxes.x1 = int(boxes_zero[i][0] * width)
-            response_boxes.y1 = int(boxes_zero[i][1] * height)
-            response_boxes.x2 = int(boxes_zero[i][2] * width)
-            response_boxes.y2 = int(boxes_zero[i][3] * height)
-            response_boxes.conf = boxes_zero[i][5]
-            response_boxes.name = self.class_names[int(boxes_zero[i][6])]
-            response.boxes.append(response_boxes)
+            absbox = AbsBoxes()
+            absbox.x1 = int(boxes_zero[i][0] * width)
+            absbox.y1 = int(boxes_zero[i][1] * height)
+            absbox.x2 = int(boxes_zero[i][2] * width)
+            absbox.y2 = int(boxes_zero[i][3] * height)
+            absbox.conf = boxes_zero[i][5]
+            absbox.name = self.class_names[int(boxes_zero[i][6])]
+            response.boxes.append(absbox)
 
         response.frame_id = msg.frame_id
         response.server_name = self.name

@@ -19,7 +19,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/DetectResult.msg"
   "msg/TrackResult.msg"
   "msg/DisplayResult.msg"
-  "msg/Score.msg"
+  "msg/ResultDelay.msg"
   "msg/NetworkDelay.msg"
   "msg/Srvinfo.msg"
   "srv/Bspip.srv"

@@ -14,6 +14,15 @@ from rclpy.node import Node
 class Detector_Node(Node):
 
 	def __init__(self):
+		# Command:
+        # ros2 run basic_pipeline detector [client_name]
+        # Example:
+        # ros2 run basic_pipeline detector client1
+        # Arguments:
+        # (Arguments can be skipped if the default value would like to be used, but others must be specified in the order mentioned above.)
+        # (Argument types: optional or necessary)
+        # client_name: optional, value: the client name, if not set, 'anonymous_client' will be default.
+
 		if(len(sys.argv) == 2):
 			self.name = sys.argv[1]
 		else:

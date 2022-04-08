@@ -1,7 +1,10 @@
 import sys
+from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
 from rclpy.callback_groups import ReentrantCallbackGroup
 from rclpy.executors import MultiThreadedExecutor
 from bspipeline_interfaces.msg import Camera
+from bspipeline_interfaces.msg import NetworkDelay
+from bspipeline_interfaces.msg import ResultDelay
 import rclpy
 from rclpy.node import Node
 
@@ -9,6 +12,15 @@ from rclpy.node import Node
 class Scheduler_Node(Node):
 
     def __init__(self):
+        # Command:
+        # ros2 run basic_pipeline scheduler [client_name]
+        # Example:
+        # ros2 run basic_pipeline scheduler client1
+        # Arguments:
+        # (Arguments can be skipped if the default value would like to be used, but others must be specified in the order mentioned above.)
+        # (Argument types: optional or necessary)
+        # client_name: optional, value: the client name, if not set, 'anonymous_client' will be default.
+
         if(len(sys.argv) == 2):
             self.name = sys.argv[1]
         else:
@@ -18,10 +30,14 @@ class Scheduler_Node(Node):
         self.interval = 1
         self.counter = 0
 
-        self.group = ReentrantCallbackGroup()
-        self.camera_listener = self.create_subscription(Camera, self.name + '_camera_frame', self.camera_callback, 10, callback_group=self.group)
-        self.detect_publisher = self.create_publisher(Camera, self.name + '_detect_frame', 10, callback_group=self.group)
-        self.track_publisher = self.create_publisher(Camera, self.name + '_track_frame', 10, callback_group=self.group)
+        self.group1 = ReentrantCallbackGroup()
+        self.group2 = MutuallyExclusiveCallbackGroup()
+        self.group3 = MutuallyExclusiveCallbackGroup()
+        self.camera_listener = self.create_subscription(Camera, self.name + '_camera_frame', self.camera_callback, 10, callback_group=self.group1)
+        self.detect_publisher = self.create_publisher(Camera, self.name + '_detect_frame', 10, callback_group=self.group1)
+        self.track_publisher = self.create_publisher(Camera, self.name + '_track_frame', 10, callback_group=self.group1)
+        self.delay_listener = self.create_subscription(NetworkDelay, self.name + '_network_delay', self.network_delay_callback, 10, callback_group=self.group2)
+        self.score_listener = self.create_subscription(ResultDelay, self.name + '_result_delay', self.result_delay_callback, 10, callback_group=self.group3)
 
         self.get_logger().info('Scheduler init done.')
 
@@ -42,13 +58,19 @@ class Scheduler_Node(Node):
         else:
             self.counter += 1
         
+    def network_delay_callback(self, msg):
+        return
+
+    def result_delay_callback(self, msg):
+        return
+
 
 def main(args=None):
     rclpy.init(args=args)
 
     try:
         scheduler_node = Scheduler_Node()
-        executor = MultiThreadedExecutor(num_threads=4)
+        executor = MultiThreadedExecutor(num_threads=5)
         executor.add_node(scheduler_node)
         try:
             executor.spin()

@@ -8,6 +8,7 @@ float64 server_detect_time
 float64 network_delay
 float64 local_tracking_time
 uint64 tracking_from_frame
-float64 precision
-float64 recall
-float64 f1_score
+uint64 performance_is_on
+uint64 tp
+uint64 tp_and_fp
+uint64 tp_and_fn

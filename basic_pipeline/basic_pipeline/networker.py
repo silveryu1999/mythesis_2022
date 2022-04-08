@@ -1,3 +1,4 @@
+import os
 import sys
 import time
 import threading
@@ -8,6 +9,7 @@ from rclpy.executors import MultiThreadedExecutor
 from bspipeline_interfaces.msg import Srvinfo
 from bspipeline_interfaces.msg import DetectRequest
 from bspipeline_interfaces.msg import DetectResponse
+from bspipeline_interfaces.msg import NetworkDelay
 from cv_bridge import CvBridge # Package to convert between ROS and OpenCV Images
 import rclpy
 from rclpy.node import Node
@@ -15,27 +17,44 @@ from rclpy.node import Node
 class Networker_Node(Node):
 
     def __init__(self):
-        if(len(sys.argv) == 1):
+        # Command:
+        # ros2 run basic_pipeline networker [client_name] [bandwidth_file_path]
+        # Example:
+        # ros2 run basic_pipeline networker client1 ./bandwidth.txt
+        # Arguments:
+        # (Arguments can be skipped if the default value would like to be used, but others must be specified in the order mentioned above.)
+        # (Argument types: optional or necessary)
+        # client_name: optional, value: the client name, if not set, 'anonymous_client' will be default.
+        # bandwidth_file_path: necessary, value: a specific bandwidth file path or 0 (not simulating network delay).
+
+        if(len(sys.argv) == 2):
             self.name = 'anonymous_client'
-            self.network_on = False
-            self.init_flag = True
-        elif(len(sys.argv) == 2):
-            self.name = sys.argv[1]
-            self.network_on = False
-            self.init_flag = True
+            if(sys.argv[1].isdigit() == True and sys.argv[1] == '0'):
+                self.network_on = False
+                self.init_flag = True
+            else:
+                if(os.path.exists(sys.argv[1]) == True):
+                    self.network_on = True
+                    self.network_path = sys.argv[1]
+                    self.init_flag = True
+                else:
+                    self.init_flag = False
         elif(len(sys.argv) == 3):
             self.name = sys.argv[1]
-            self.network_path = sys.argv[2]
-            self.network_on = True
-            self.init_flag = True
+            if(sys.argv[2].isdigit() == True and sys.argv[2] == '0'):
+                self.network_on = False
+                self.init_flag = True
+            else:
+                if(os.path.exists(sys.argv[2]) == True):
+                    self.network_on = True
+                    self.network_path = sys.argv[2]
+                    self.init_flag = True
+                else:
+                    self.init_flag = False
         else:
             self.init_flag = False
 
-        if(self.init_flag == False):
-            super().__init__('networker')
-            self.get_logger().info('Networker init failed. You should run command: ros2 run basic_pipeline networker [client_name] [throughput_file]')
-            self.get_logger().info('Throughput file should be a path name.')
-        else:
+        if(self.init_flag == True):
             super().__init__(self.name + '_networker')
 
             if(self.network_on == True):
@@ -55,20 +74,26 @@ class Networker_Node(Node):
             self.detect_request_listener = self.create_subscription(DetectRequest, self.name + '_detect_request_network', self.request_callback, 100, callback_group=self.group)
             self.detect_response_listener = self.create_subscription(DetectResponse, self.name + '_detect_response', self.response_callback, 100, callback_group=self.group)
             self.detect_response_publisher = self.create_publisher(DetectResponse, self.name + '_detect_response_network', 10, callback_group=self.group)
+            self.network_delay_publisher = self.create_publisher(NetworkDelay, self.name + '_network_delay', 10, callback_group=self.group)
             self.timer1 = self.create_timer(1.0, self.select_srv_callback, callback_group=self.group)
             self.timer2 = self.create_timer(5.0, self.clear_srv_callback, callback_group=self.group)
 
             if(self.network_on == True):
-                self.get_logger().info('Networker init done. Using network file: %s' % (self.network_path))
+                self.get_logger().info('Networker init done. Simulating network delay with bandwidth file: %s' % (self.network_path))
             else:
-                self.get_logger().info('Networker init done. Not using network.')
+                self.get_logger().info('Networker init done. Not simulating network delay.')
+        else:
+            super().__init__('networker')
+            self.get_logger().info('Networker init failed. Check arguments and the bandwidth file path.')
+            self.get_logger().info('Command: ros2 run basic_pipeline networker [client_name] [bandwidth_file_path]')
+            self.get_logger().info('Optional arguments: [client_name] | Necessary arguments: [bandwidth_file_path]')
 
     def request_callback(self, msg):
         if(self.target_server == None):
             self.get_logger().info('Frame %d has been dropped since no server is active.' % (msg.frame_id))
         else:
             if(self.network_on == True):
-                current_frame = self.br.imgmsg_to_cv2(msg.frame)
+                # current_frame = self.br.imgmsg_to_cv2(msg.frame)
                 # frame_bytes = sys.getsizeof(current_frame) # bytes
                 frame_bytes = 1393652
 
@@ -88,12 +113,23 @@ class Networker_Node(Node):
                 pub.publish(msg)
                 self.get_logger().info('Frame %d network delay: %fs, and has been delivered to server: %s' % (msg.frame_id, delay, self.target_server))
                 del pub
+
+                networkdelay = NetworkDelay()
+                networkdelay.frame_id = msg.frame_id
+                networkdelay.bandwidth = bandwidth
+                networkdelay.network_delay = delay
+                self.network_delay_publisher.publish(networkdelay)
             else:
                 pub = self.create_publisher(DetectRequest, self.target_server + '_detect_request', 10, callback_group=self.group)
                 pub.publish(msg)
                 self.get_logger().info('Frame %d has been delivered to server directly: %s' % (msg.frame_id, self.target_server))
                 del pub
 
+                networkdelay = NetworkDelay()
+                networkdelay.frame_id = msg.frame_id
+                networkdelay.bandwidth = 0
+                networkdelay.network_delay = 0.0
+                self.network_delay_publisher.publish(networkdelay)
 
     def response_callback(self, msg):
         self.detect_response_publisher.publish(msg)
