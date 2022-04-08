@@ -91,12 +91,13 @@ source /opt/ros/galactic/setup.bash    // 二进制包方式
 客户端运行：  
 每个结点都需要打开一个新终端来运行（即每个结点运行在单独的进程中），建议等其它客户端结点init完毕后，最后再启动Camera  
 注意一些需要提供路径的结点，检查当前运行路径和所需文件路径是否正确  
+如果按以上树形目录结构部署项目，那么建议客户端结点都运行在 ~/your_ros2_workspace 路径下  
 #### Camera:  
 ```
 # Command:
 ros2 run basic_pipeline camera [client_name] [frame_rate] [video_path]
 # Example:
-ros2 run basic_pipeline camera client1 10 ./video.mp4
+ros2 run basic_pipeline camera client1 10 ./videos/xxx.mp4
 # Arguments:
 # (Arguments can be skipped if the default value would like to be used, but others must be specified in the order mentioned above.)
 # (Argument types: optional or necessary)
@@ -127,7 +128,7 @@ ros2 run basic_pipeline detector client1
 # Command:
 ros2 run basic_pipeline networker [client_name] [bandwidth_file_path]
 # Example:
-ros2 run basic_pipeline networker client1 ./bandwidth.txt
+ros2 run basic_pipeline networker client1 ./network/xxx.txt
 # Arguments:
 # client_name: optional, value: the client name, if not set, 'anonymous_client' will be default.
 # bandwidth_file_path: necessary, value: a specific bandwidth file path or 0 (not simulating network delay).
@@ -146,7 +147,7 @@ ros2 run basic_pipeline tracker client1
 # Command:
 ros2 run basic_pipeline collector [client_name] [ground_truth_directory]
 # Example:
-ros2 run basic_pipeline collector client1 ./ground_truth/
+ros2 run basic_pipeline collector client1 ./ground_truth/xxx/
 # Arguments:
 # client_name: optional, value: the client name, if not set, 'anonymous_client' will be default.
 # ground_truth_directory: necessary, value: directory of ground truth files or 0 (do not have ground truth or not calculating the performance).
