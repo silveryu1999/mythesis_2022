@@ -88,9 +88,9 @@ ros2 run basic_pipeline camera [client_name] [frame_rate] [video_path]
 ros2 run basic_pipeline camera client1 10 ./video.mp4
 # Arguments:
 # (Arguments can be skipped if the default value would like to be used, but others must be specified in the order mentioned above.)
-# (Argument types: avaiable or necessary)
-# client_name: avaiable, value: the client name, if not set, 'anonymous_client' will be default.
-# frame_rate: avaiable, value: the frame rate of capturing, if not set, 10 will be default.
+# (Argument types: optional or necessary)
+# client_name: optional, value: the client name, if not set, 'anonymous_client' will be default.
+# frame_rate: optional, value: the frame rate of capturing, if not set, 10 will be default.
 # video_path: necessary, value: a specific video file path or 0 (aka the default webcam of the computer).
 ```
 #### Scheduler:  
@@ -100,7 +100,7 @@ ros2 run basic_pipeline scheduler [client_name]
 # Example:
 ros2 run basic_pipeline scheduler client1
 # Arguments:
-# client_name: avaiable, value: the client name, if not set, 'anonymous_client' will be default.
+# client_name: optional, value: the client name, if not set, 'anonymous_client' will be default.
 ```
 #### Detector:  
 ```
@@ -109,7 +109,7 @@ ros2 run basic_pipeline detector [client_name]
 # Example:
 ros2 run basic_pipeline detector client1
 # Arguments:
-# client_name: avaiable, value: the client name, if not set, 'anonymous_client' will be default.
+# client_name: optional, value: the client name, if not set, 'anonymous_client' will be default.
 ```
 #### Networker:  
 ```
@@ -118,7 +118,7 @@ ros2 run basic_pipeline networker [client_name] [bandwidth_file_path]
 # Example:
 ros2 run basic_pipeline networker client1 ./bandwidth.txt
 # Arguments:
-# client_name: avaiable, value: the client name, if not set, 'anonymous_client' will be default.
+# client_name: optional, value: the client name, if not set, 'anonymous_client' will be default.
 # bandwidth_file_path: necessary, value: a specific bandwidth file path or 0 (not simulating network delay).
 ```
 #### Tracker:  
@@ -128,7 +128,7 @@ ros2 run basic_pipeline tracker [client_name]
 # Example:
 ros2 run basic_pipeline tracker client1
 # Arguments:
-# client_name: avaiable, value: the client name, if not set, 'anonymous_client' will be default.
+# client_name: optional, value: the client name, if not set, 'anonymous_client' will be default.
 ```
 #### Collector:  
 ```
@@ -137,7 +137,7 @@ ros2 run basic_pipeline collector [client_name] [ground_truth_directory]
 # Example:
 ros2 run basic_pipeline collector client1 ./ground_truth/
 # Arguments:
-# client_name: avaiable, value: the client name, if not set, 'anonymous_client' will be default.
+# client_name: optional, value: the client name, if not set, 'anonymous_client' will be default.
 # ground_truth_directory: necessary, value: directory of ground truth files or 0 (do not have ground truth or not calculating the performance).
 ```
 #### Displayer:
@@ -147,7 +147,7 @@ ros2 run basic_pipeline displayer [client_name]
 # Example:
 ros2 run basic_pipeline displayer client1
 # Arguments:
-# client_name: avaiable, value: the client name, if not set, 'anonymous_client' will be default.
+# client_name: optional, value: the client name, if not set, 'anonymous_client' will be default.
 ```
 服务器运行：  
 最好在客户端启动前启动，避免开始的请求没被接收到  
@@ -158,7 +158,7 @@ ros2 run basic_pipeline server [server_name]
 # Example:
 ros2 run basic_pipeline server server1
 # Arguments:
-# server_name: avaiable, value: the server name, if not set, 'anony_server' will be default.
+# server_name: optional, value: the server name, if not set, 'anony_server' will be default.
 ```  
 
 ## TO DO  
