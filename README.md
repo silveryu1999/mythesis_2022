@@ -46,9 +46,6 @@ mkdir -p ~/your_ros2_workspace/src
 ├── build    (build后生成)
 ├── install    (build后生成)
 ├── log    (build后生成)
-├── src
-│   ├── basic_pipeline
-│   └── bspipeline_interfaces
 ├── ground_truth
 │   ├── ...
 │   └── ...
@@ -58,6 +55,9 @@ mkdir -p ~/your_ros2_workspace/src
 ├── network
 │   ├── xxx.txt
 │   └── ...
+├── src
+│   ├── basic_pipeline
+│   └── bspipeline_interfaces
 ├── vision_opencv    (注意参考前面cv_bridge的链接，安装相关依赖并且build完毕)
 │   ├── cv_bridge
 │   ├── image_geometry
