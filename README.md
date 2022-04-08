@@ -104,40 +104,61 @@ ros2 run basic_pipeline scheduler client1
 ```
 #### Detector:  
 ```
-
+# Command:
+ros2 run basic_pipeline detector [client_name]
+# Example:
+ros2 run basic_pipeline detector client1
+# Arguments:
+# client_name: avaiable, value: the client name, if not set, 'anonymous_client' will be default.
 ```
 #### Networker:  
 ```
-
+# Command:
+ros2 run basic_pipeline networker [client_name] [bandwidth_file_path]
+# Example:
+ros2 run basic_pipeline networker client1 ./bandwidth.txt
+# Arguments:
+# client_name: avaiable, value: the client name, if not set, 'anonymous_client' will be default.
+# bandwidth_file_path: necessary, value: a specific bandwidth file path or 0 (not simulating network delay).
 ```
 #### Tracker:  
 ```
-
+# Command:
+ros2 run basic_pipeline tracker [client_name]
+# Example:
+ros2 run basic_pipeline tracker client1
+# Arguments:
+# client_name: avaiable, value: the client name, if not set, 'anonymous_client' will be default.
 ```
 #### Collector:  
 ```
-
+# Command:
+ros2 run basic_pipeline collector [client_name] [ground_truth_directory]
+# Example:
+ros2 run basic_pipeline collector client1 ./ground_truth/
+# Arguments:
+# client_name: avaiable, value: the client name, if not set, 'anonymous_client' will be default.
+# ground_truth_directory: necessary, value: directory of ground truth files or 0 (do not have ground truth or not calculating the performance).
 ```
 #### Displayer:
 ```
-
-```
-
-```
+# Command:
 ros2 run basic_pipeline displayer [client_name]
-ros2 run basic_pipeline collector [client_name]
-ros2 run basic_pipeline tracker [client_name]
-ros2 run basic_pipeline detector [client_name]
-ros2 run basic_pipeline networker [client_name] [throughput_file]
-ros2 run basic_pipeline scheduler [client_name]
------------------------------------------------
-ros2 run basic_pipeline camera [client_name] [frame_rate]
+# Example:
+ros2 run basic_pipeline displayer client1
+# Arguments:
+# client_name: avaiable, value: the client name, if not set, 'anonymous_client' will be default.
 ```
 服务器运行：  
 最好在客户端启动前启动，避免开始的请求没被接收到  
 #### Server:  
 ```
+# Command:
 ros2 run basic_pipeline server [server_name]
+# Example:
+ros2 run basic_pipeline server server1
+# Arguments:
+# server_name: avaiable, value: the server name, if not set, 'anony_server' will be default.
 ```  
 
 ## TO DO  
