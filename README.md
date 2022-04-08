@@ -9,6 +9,7 @@ developing...
 ~2022/03/06: 修复已有系统bug，除了最后的显示窗口，系统框架能完整运行  
 ~2022/03/10: 系统能够完整运行，同时修改系统框架设计，新增network模块  
 ~2022/04/05: 完成network模块仿真设计，修改其它模块  
+~2022/04/08: 完善用户接口，完善性能信息，添加测试用例和ground truth  
 
 ## Framework    
 Single Client-Server  
@@ -48,6 +49,15 @@ mkdir -p ~/your_ros2_workspace/src
 ├── src
 │   ├── basic_pipeline
 │   └── bspipeline_interfaces
+├── ground_truth
+│   ├── ...
+│   └── ...
+├── videos
+│   ├── xxx.mp4
+│   └── ...
+├── network
+│   ├── xxx.txt
+│   └── ...
 ├── vision_opencv    (注意参考前面cv_bridge的链接，安装相关依赖并且build完毕)
 │   ├── cv_bridge
 │   ├── image_geometry
