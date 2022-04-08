@@ -102,10 +102,26 @@ ros2 run basic_pipeline scheduler client1
 # Arguments:
 # client_name: avaiable, value: the client name, if not set, 'anonymous_client' will be default.
 ```
+#### detector:  
+```
 
+```
+#### networker:  
+```
 
+```
+#### tracker:  
+```
 
+```
+#### collector:  
+```
 
+```
+#### displayer:
+```
+
+```
 
 ```
 ros2 run basic_pipeline displayer [client_name]
