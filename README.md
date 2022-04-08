@@ -80,7 +80,7 @@ source /opt/ros/galactic/setup.bash    // 二进制包方式
 ### 项目运行
 客户端运行：  
 每个结点都需要打开一个新终端来运行（即每个结点运行在单独的进程中），建议等其它客户端结点init完毕后，最后再启动Camera  
-Camera:  
+#### Camera:  
 ```
 # Command:
 ros2 run basic_pipeline camera [client_name] [frame_rate] [video_path]
