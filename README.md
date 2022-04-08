@@ -102,23 +102,23 @@ ros2 run basic_pipeline scheduler client1
 # Arguments:
 # client_name: avaiable, value: the client name, if not set, 'anonymous_client' will be default.
 ```
-#### detector:  
+#### Detector:  
 ```
 
 ```
-#### networker:  
+#### Networker:  
 ```
 
 ```
-#### tracker:  
+#### Tracker:  
 ```
 
 ```
-#### collector:  
+#### Collector:  
 ```
 
 ```
-#### displayer:
+#### Displayer:
 ```
 
 ```
@@ -135,6 +135,7 @@ ros2 run basic_pipeline camera [client_name] [frame_rate]
 ```
 服务器运行：  
 最好在客户端启动前启动，避免开始的请求没被接收到  
+#### Server:  
 ```
 ros2 run basic_pipeline server [server_name]
 ```  
