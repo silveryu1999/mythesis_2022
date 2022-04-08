@@ -12,16 +12,16 @@ from rclpy.node import Node
 
 
 class Detector_Node(Node):
-
+	
 	def __init__(self):
 		# Command:
-        # ros2 run basic_pipeline detector [client_name]
-        # Example:
-        # ros2 run basic_pipeline detector client1
-        # Arguments:
-        # (Arguments can be skipped if the default value would like to be used, but others must be specified in the order mentioned above.)
-        # (Argument types: optional or necessary)
-        # client_name: optional, value: the client name, if not set, 'anonymous_client' will be default.
+		# ros2 run basic_pipeline detector [client_name]
+		# Example:
+		# ros2 run basic_pipeline detector client1
+		# Arguments:
+		# (Arguments can be skipped if the default value would like to be used, but others must be specified in the order mentioned above.)
+		# (Argument types: optional or necessary)
+		# client_name: optional, value: the client name, if not set, 'anonymous_client' will be default.
 
 		if(len(sys.argv) == 2):
 			self.name = sys.argv[1]
@@ -34,12 +34,12 @@ class Detector_Node(Node):
 		self.detect_request_publisher = self.create_publisher(DetectRequest, self.name + '_detect_request_network', 10, callback_group=self.group)
 		self.detect_response_listener = self.create_subscription(DetectResponse, self.name + '_detect_response_network', self.response_callback, 10, callback_group=self.group)
 		self.detect_result_publisher = self.create_publisher(DetectResult, self.name + '_detect_result', 10, callback_group=self.group)
-
+		
 		self.last_detect_frame_id = 0
 		self.last_detect_frame_id_lock = threading.Lock()
-
+		
 		self.get_logger().info('Detector init done.')
-
+	
 	def detect_callback(self, msg):
 		request = DetectRequest()
 		request.frame = msg.frame
@@ -48,7 +48,7 @@ class Detector_Node(Node):
 		request.sending_timestamp = time.time()
 		self.detect_request_publisher.publish(request)
 		self.get_logger().info('Frame %d has been delivered to the networker.' % (msg.frame_id))
-
+		
 	def response_callback(self, msg):
 		with self.last_detect_frame_id_lock:
 			if(msg.frame_id > self.last_detect_frame_id):
@@ -56,7 +56,7 @@ class Detector_Node(Node):
 				self.last_detect_frame_id = msg.frame_id
 			else:
 				flag = False
-		
+				
 		if(flag == True):
 			result = DetectResult()
 			result.result_boxes = msg.boxes
@@ -75,20 +75,20 @@ class Detector_Node(Node):
 
 
 def main(args=None):
-    rclpy.init(args=args)
+	rclpy.init(args=args)
+	
+	try:
+		detector_node = Detector_Node()
+		executor = MultiThreadedExecutor(num_threads=4)
+		executor.add_node(detector_node)
+		try:
+			executor.spin()
+		finally:
+			executor.shutdown()
+			detector_node.destroy_node()
+	finally:
+		rclpy.shutdown()
 
-    try:
-        detector_node = Detector_Node()
-        executor = MultiThreadedExecutor(num_threads=4)
-        executor.add_node(detector_node)
-        try:
-            executor.spin()
-        finally:
-            executor.shutdown()
-            detector_node.destroy_node()
-    finally:
-        rclpy.shutdown()
-    
 
 if __name__ == '__main__':
     main()
