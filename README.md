@@ -84,14 +84,23 @@ source /opt/ros/galactic/setup.bash    // 二进制包方式
 ```
 # Command:
 ros2 run basic_pipeline camera [client_name] [frame_rate] [video_path]
-Example:
+# Example:
 ros2 run basic_pipeline camera client1 10 ./video.mp4
-# Arguments: 
+# Arguments:
 # (Arguments can be skipped if the default value would like to be used, but others must be specified in the order mentioned above.)
 # (Argument types: avaiable or necessary)
 # client_name: avaiable, value: the client name, if not set, 'anonymous_client' will be default.
 # frame_rate: avaiable, value: the frame rate of capturing, if not set, 10 will be default.
 # video_path: necessary, value: a specific video file path or 0 (aka the default webcam of the computer).
+```
+#### Scheduler:  
+```
+# Command:
+ros2 run basic_pipeline scheduler [client_name]
+# Example:
+ros2 run basic_pipeline scheduler client1
+# Arguments:
+# client_name: avaiable, value: the client name, if not set, 'anonymous_client' will be default.
 ```
 
 
