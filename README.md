@@ -62,6 +62,7 @@ mkdir -p ~/your_ros2_workspace/src
     └── weight    (从前面yolov4的链接可以下载权重放到这里)
 ```
 运行前构建并编译：  
+编译过程中可能遇到一些警告，可以忽略  
 ```
 cd ~/your_ros2_workspace
 colcon build
@@ -78,7 +79,13 @@ source /opt/ros/galactic/setup.bash    // 二进制包方式
 ```
 ### 项目运行
 客户端运行：  
-每个结点都需要打开一个新终端来运行（即每个结点运行在单独的进程中），最好等其它客户端结点init完毕后，在最后才启动Camera 
+每个结点都需要打开一个新终端来运行（即每个结点运行在单独的进程中），建议等其它客户端结点init完毕后，最后再启动Camera  
+Camera:  
+
+
+
+
+
 ```
 ros2 run basic_pipeline displayer [client_name]
 ros2 run basic_pipeline collector [client_name]
