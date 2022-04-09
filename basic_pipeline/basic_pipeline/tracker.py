@@ -1,5 +1,6 @@
 import sys
 import time
+import numpy as np
 import multiprocessing
 from readerwriterlock import rwlock
 from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
@@ -98,9 +99,7 @@ class Tracker_Node(Node):
             if(self.LKtracker_is_init == True):
                 # local tracking
                 track_time_start = time.time()
-                self.get_logger().info('Tracker received frame %d from scheduler, now using local tracking.' % (msg.frame_id))
                 track_result_msg, id_diff = self.tracking(self.br.imgmsg_to_cv2(msg.frame), msg.frame_id)
-
                 track_result_msg.process_time = time.time() - track_time_start
                 self.track_result_publisher.publish(track_result_msg)
                 self.get_logger().info('Track result of frame %d has been published to collector. frame_delay: %d | tracking_time: %fs.' % (msg.frame_id, id_diff, track_result_msg.process_time))
@@ -108,11 +107,9 @@ class Tracker_Node(Node):
                 self.get_logger().info('Tracker received frame %d from scheduler, but has been dropped due to tracker not init yet.' % (msg.frame_id))
 
     def detect_result_callback(self, msg):
-        self.get_logger().info('Tracker received detect result of frame %d from detector, now updating tracker.' % (msg.frame_id))
-
         with self.LKtracker_wlock:
             if(msg.frame_id <= self.LKtracker_last_update_frame_id):
-                self.get_logger().info('Detect result of frame %d is outdated, now dropping it.' % (msg.frame_id))
+                self.get_logger().info('Tracker received detect result of frame %d but it is outdated, now dropping it.' % (msg.frame_id))
             else:
                 update_time_start = time.time()
                 with self.frame_history_rlock:
@@ -122,10 +119,20 @@ class Tracker_Node(Node):
                 self.LKtracker_previmg = gray_image
                 self.LKtracker_prevpoints = cv2.goodFeaturesToTrack(gray_image, mask = None, **self.LKtracker_feature_params)
                 self.LKtracker_boxes = msg.result_boxes
+
+                # the 4 corner points and the central point of the boxes will be included in feature points
+                for i in range(len(msg.result_boxes)):
+                    a1 = np.array([[[msg.result_boxes[i].x1, msg.result_boxes[i].y1]]], dtype=np.float32)
+                    a2 = np.array([[[msg.result_boxes[i].x1, msg.result_boxes[i].y2]]], dtype=np.float32)
+                    a3 = np.array([[[msg.result_boxes[i].x2, msg.result_boxes[i].y1]]], dtype=np.float32)
+                    a4 = np.array([[[msg.result_boxes[i].x2, msg.result_boxes[i].y2]]], dtype=np.float32)
+                    a5 = np.array([[[(msg.result_boxes[i].x1 + msg.result_boxes[i].x2) / 2, (msg.result_boxes[i].y1 + msg.result_boxes[i].y2) / 2]]], dtype=np.float32)
+                    self.LKtracker_prevpoints = np.concatenate((self.LKtracker_prevpoints, a1, a2, a3, a4, a5), axis = 0)
+                
                 self.LKtracker_is_init = True
                 self.LKtracker_last_update_frame_id = msg.frame_id
                 updating_time = time.time() - update_time_start
-                self.get_logger().info('Tracker has been updated from detect result of frame %d in %f seconds.' % (msg.frame_id, updating_time))
+                self.get_logger().info('Tracker received detect result of frame %d and updated tracker in %f seconds.' % (msg.frame_id, updating_time))
 
     def tracking(self, frame, frame_id):
         nextimg = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
