@@ -15,7 +15,7 @@ developing...
 ## Framework    
 Single Client-Server  
 ![image text](https://github.com/sysu18364109/mythesis_2022/blob/main/pic1.png)  
-Distributed: Multi-Client Multi-Server  
+Distributed: Multi-Client Multi-Server (only supported in ros2 currently)  
 ![image text](https://github.com/sysu18364109/mythesis_2022/blob/main/pic2.png)  
 
 ## Prerequisites
