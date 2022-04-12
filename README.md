@@ -39,9 +39,6 @@ Distributed: Multi-Client Multi-Server (only supported in ros2 currently)
 * [websocket-client](https://pypi.org/project/websocket-client/)  
   
 一些注意事项：cv_bridge注意参照链接进行配置；yolov4可以直接用这里的代码，除了权重weights另需下载；由于python3的threading模块没有自带的读写锁，python3中也没有任何包含读写锁的官方模块，因此使用了第三方实现的读写锁；有两个websocket相关包分别被sanic和client使用；获取以上依赖之后，保证源代码在import时能找到相应模块即可。  
-```
-python3 -m pip install -U readerwriterlock
-```
 ### 项目构建
 创建ros2工作空间：
 ```
