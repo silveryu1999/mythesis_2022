@@ -234,7 +234,9 @@ ros2 run basic_pipeline server server1
 - [x] 新增networker，完成对实际网络吞吐量的仿真  
 - [x] collector对结果进行得分评估，包含准确率(IOU)、召回率、F1-Score三个指标  
 - [ ] scheduler根据网络延迟和跟踪延迟评估，调整检测和跟踪间隔  
-- [x] networker和server之间的通信方式从ros2 topic方式替换成websocket，server将不再运行在ros2结点上
+- [x] networker和server之间的通信方式从ros2 topic方式替换成websocket，server将不再运行在ros2结点上  
+- [ ] 在多样网络环境下进行测试，获取更多测试结果  
+- [ ] 提高sanic server的性能  
 - [ ] 完成上一点的基础上，修改client与server之间的发现方式  
 - [ ] client之间的结点通过共享内存方式减少传递帧的开销  
 - [ ] 在系统能够正常运行同时提高camera帧率  
