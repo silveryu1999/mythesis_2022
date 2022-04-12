@@ -23,15 +23,21 @@ Distributed: Multi-Client Multi-Server
 * Python：3.8+  
 * OpenCV：4.5+  
 * CVbridge：2.2+  
-
+* Readerwriterlock： 1.0.9+  
+* Sanic： 22.3.0+  
+* Websockets： 10.2+（for sanic）  
+* Websocket-client： 1.3.2+（for client node）  
 ## TO RUN  
 ### 获取相关依赖   
 * [cv_bridge](https://github.com/ros-perception/vision_opencv/tree/ros2/cv_bridge)
 * [opencv](https://docs.opencv.org/4.x/index.html)
 * [yolov4](https://github.com/Tianxiaomo/pytorch-YOLOv4)  
 * [readerwriterlock 1.0.9](https://pypi.org/project/readerwriterlock/)  
+* [Sanic](https://sanic.readthedocs.io/en/stable/index.html)  
+* [websockets](https://websockets.readthedocs.io/en/stable/index.html)  
+* [websocket-client](https://pypi.org/project/websocket-client/)  
   
-主要参照cv_bridge链接进行配置（这里我已经将yolov4上传，除了权重weights），保证源代码import时能找到相应模块。项目中还使用了读写锁，由于python3的threading模块没有自带的读写锁，python3中也没有任何包含读写锁的官方模块，因此使用了第三方实现的读写锁  
+一些注意事项：cv_bridge注意参照链接进行配置；yolov4可以直接用这里的代码，除了权重weights另需下载；由于python3的threading模块没有自带的读写锁，python3中也没有任何包含读写锁的官方模块，因此使用了第三方实现的读写锁；有两个websocket相关包分别被sanic和client使用；获取以上依赖之后，保证源代码在import时能找到相应模块即可。  
 ```
 python3 -m pip install -U readerwriterlock
 ```
@@ -40,14 +46,16 @@ python3 -m pip install -U readerwriterlock
 ```
 mkdir -p ~/your_ros2_workspace/src
 ```
-从项目中将basic_pipeline和bspipeline_interfaces文件夹复制到工作空间的src目录下，复制yolov4文件夹到工作空间下，从上面cv_bridge链接获取vision_opencv文件夹到工作空间下。此时，工作空间目录结构如下：
+从上述项目中将各目录文件加载到工作空间下，此时，工作空间目录结构应如下（ground_truth、ideos、network可以放置在其它的地方，只需在启动相应的client node时指明相应路径即可）：
 ```
 .
 ├── build    (build后生成)
 ├── install    (build后生成)
 ├── log    (build后生成)
 ├── ground_truth
-│   ├── ...
+│   ├── xxx
+│   │   ├── 1.txt
+│   │   └── ...
 │   └── ...
 ├── videos
 │   ├── xxx.mp4
@@ -57,7 +65,34 @@ mkdir -p ~/your_ros2_workspace/src
 │   └── ...
 ├── src
 │   ├── basic_pipeline
+│   │   ├── basic_pipeline
+│   │   │   ├── camera.py
+│   │   │   ├── collector.py
+│   │   │   ├── detector.py
+│   │   │   ├── displayer.py
+│   │   │   ├── networker.py    （使用websocket通信方式的networker）
+│   │   │   ├── networker_ros2.py    (使用ros2 topic通信方式的networker)
+│   │   │   ├── scheduler.py
+│   │   │   ├── server_ros2.py    (构建在ros2 node之上的server)
+│   │   │   ├── tracker.py
+│   │   │   └── ...
+│   │   └── ...
 │   └── bspipeline_interfaces
+│       ├── msg
+│       │   ├── AbsBoxes.msg
+│       │   ├── Boxes.msg
+│       │   ├── Camera.msg
+│       │   ├── DetectDelay.msg
+│       │   ├── DetectRequest.msg
+│       │   ├── DetectResponse.msg
+│       │   ├── DetectResult.msg
+│       │   ├── DisplayResult.msg
+│       │   ├── Srvinfo.msg
+│       │   ├── TrackDelay.msg
+│       │   ├── TrackResult.msg
+│       │   └── ...
+│       └── ...
+├── server.py    (构建在Sanic之上的server)
 ├── vision_opencv    (注意参考前面cv_bridge的链接，安装相关依赖并且build完毕)
 │   ├── cv_bridge
 │   ├── image_geometry
@@ -123,12 +158,22 @@ ros2 run basic_pipeline detector client1
 # Arguments:
 # client_name: optional, value: the client name, if not set, 'anonymous_client' will be default.
 ```
-#### Networker:  
+#### Networker(Combined with server):  
 ```
 # Command:
 ros2 run basic_pipeline networker [client_name] [bandwidth_file_path]
 # Example:
 ros2 run basic_pipeline networker client1 ./network/xxx.txt
+# Arguments:
+# client_name: optional, value: the client name, if not set, 'anonymous_client' will be default.
+# bandwidth_file_path: necessary, value: a specific bandwidth file path or 0 (not simulating network delay).
+```
+#### Networker_ros2(Combined with server_ros2):  
+```
+# Command:
+ros2 run basic_pipeline networker_ros2 [client_name] [bandwidth_file_path]
+# Example:
+ros2 run basic_pipeline networker_ros2 client1 ./network/xxx.txt
 # Arguments:
 # client_name: optional, value: the client name, if not set, 'anonymous_client' will be default.
 # bandwidth_file_path: necessary, value: a specific bandwidth file path or 0 (not simulating network delay).
@@ -162,11 +207,21 @@ ros2 run basic_pipeline displayer client1
 # client_name: optional, value: the client name, if not set, 'anonymous_client' will be default.
 ```
 服务器运行：  
-最好在客户端启动前启动，避免开始的请求没被接收到  
-#### Server:  
+最好在客户端启动前启动，等待模型加载完毕，避免开始的请求没被接收到  
+#### Server(Sanic server):  
 ```
 # Command:
-ros2 run basic_pipeline server [server_name]
+sanic server.app --port=12345 --workers=1 --no-access-logs
+or more simply:
+python3 server.py
+# Note:
+# Currently it only supports worker=1, it means that the server use one main process to handle the requests.
+# The port can be modified, change it in both network and server.
+```  
+#### Server_ros2(Ros2 node server):  
+```
+# Command:
+ros2 run basic_pipeline server_ros2 [server_name]
 # Example:
 ros2 run basic_pipeline server server1
 # Arguments:
@@ -174,11 +229,11 @@ ros2 run basic_pipeline server server1
 ```  
 
 ## TO DO  
-- [ ] 传输用于检测的图片时，对图片进行压缩  
+- [x] 传输用于检测的图片时，对图片进行压缩  
 - [x] 新增networker，完成对实际网络吞吐量的仿真  
 - [x] collector对结果进行得分评估，包含准确率(IOU)、召回率、F1-Score三个指标  
-- [ ] scheduler根据网络延迟和结果得分评估调整检测和跟踪间隔  
-- [ ] networker和server之间的交互从message方式替换成TCP socket，server将不再运行在ros2结点上
+- [ ] scheduler根据网络延迟和跟踪延迟评估，调整检测和跟踪间隔  
+- [x] networker和server之间的通信方式从ros2 topic方式替换成websocket，server将不再运行在ros2结点上
 - [ ] 完成上一点的基础上，修改client与server之间的发现方式  
 - [ ] client之间的结点通过共享内存方式减少传递帧的开销  
 - [ ] 在系统能够正常运行同时提高camera帧率  
