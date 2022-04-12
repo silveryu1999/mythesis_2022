@@ -11,7 +11,6 @@ from bspipeline_interfaces.msg import Camera
 from bspipeline_interfaces.msg import DetectResult
 from bspipeline_interfaces.msg import TrackResult
 from bspipeline_interfaces.msg import DisplayResult
-from bspipeline_interfaces.msg import ResultDelay
 import rclpy
 from rclpy.node import Node
 
@@ -103,7 +102,6 @@ class Collector_Node(Node):
             self.detect_result_listener = self.create_subscription(DetectResult, self.name + '_detect_result', self.detect_result_callback, 10, callback_group=self.group2)
             self.track_result_listener = self.create_subscription(TrackResult, self.name + '_track_result', self.track_result_callback, 10, callback_group=self.group3)
             self.display_result_publisher = self.create_publisher(DisplayResult, self.name + '_display_result', 10, callback_group=self.group4)
-            self.result_delay_publisher = self.create_publisher(ResultDelay, self.name + '_result_delay', 10, callback_group=self.group4)
 
             self.camera_current_frame_lock = rwlock.RWLockFair()
             self.camera_current_frame_rlock = self.camera_current_frame_lock.gen_rlock()
@@ -123,14 +121,11 @@ class Collector_Node(Node):
 
     def detect_result_callback(self, msg):
         result = DisplayResult()
-        resultdelay = ResultDelay()
         result.method = 0
-        resultdelay.method = 0
 
         with self.camera_current_frame_rlock:
             result.frame = self.camera_current_frame
             result.current_camera_frame_id = self.camera_current_frame_id
-            resultdelay.current_frame_id = self.camera_current_frame_id
 
         result.display_result_frame_id = msg.frame_id
         result.result_boxes = msg.result_boxes
@@ -138,10 +133,6 @@ class Collector_Node(Node):
         result.network_delay = msg.network_delay
         result.server_detect_time = msg.process_time
 
-        resultdelay.result_frame_id = msg.frame_id
-        resultdelay.total_delay = resultdelay.current_frame_id - resultdelay.result_frame_id
-        resultdelay.result_delay = resultdelay.total_delay
-
         if(self.load_ground_truth == True):
             result.performance_is_on = 1
             result.tp, result.tp_and_fp, result.tp_and_fn = self.cal_performance(result.current_camera_frame_id, msg.result_boxes)
@@ -149,30 +140,21 @@ class Collector_Node(Node):
             result.performance_is_on = 0
 
         self.display_result_publisher.publish(result)
-        self.result_delay_publisher.publish(resultdelay)
-        self.get_logger().info('Detect result of frame %d has been published to the displayer, and the result delay has been published to the scheduler.' % (msg.frame_id))
+        self.get_logger().info('Detect result of frame %d has been published to the displayer.' % (msg.frame_id))
         
     def track_result_callback(self, msg):
         result = DisplayResult()
-        resultdelay = ResultDelay()
         result.method = 1
-        resultdelay.method = 1
 
         with self.camera_current_frame_rlock:
             result.frame = self.camera_current_frame
             result.current_camera_frame_id = self.camera_current_frame_id
-            resultdelay.current_frame_id = self.camera_current_frame_id
 
         result.display_result_frame_id = msg.frame_id
         result.result_boxes = msg.result_boxes
         result.local_tracking_time = msg.process_time
         result.tracking_from_frame = msg.last_detect_result_frame_id
 
-        resultdelay.result_frame_id = msg.frame_id
-        resultdelay.total_delay = resultdelay.current_frame_id - msg.last_detect_result_frame_id
-        resultdelay.result_delay = resultdelay.current_frame_id - resultdelay.result_frame_id
-        resultdelay.track_delay = resultdelay.result_frame_id - msg.last_detect_result_frame_id
-
         if(self.load_ground_truth == True):
             result.performance_is_on = 1
             result.tp, result.tp_and_fp, result.tp_and_fn = self.cal_performance(result.current_camera_frame_id, msg.result_boxes)
@@ -180,8 +162,7 @@ class Collector_Node(Node):
             result.performance_is_on = 0
         
         self.display_result_publisher.publish(result)
-        self.result_delay_publisher.publish(resultdelay)
-        self.get_logger().info('Track result of frame %d has been published to the displayer, and the result delay has been published to the scheduler..' % (msg.frame_id))
+        self.get_logger().info('Track result of frame %d has been published to the displayer.' % (msg.frame_id))
 
     def camera_callback(self, msg):
         result = DisplayResult()
@@ -222,22 +203,7 @@ class Collector_Node(Node):
                 hit += 1
                 is_track[max_index] = 1
 
-        self.get_logger().info('gt_frame_id: %d hit: %d detect total: %d gt total: %d' % (gt_frame_id, hit, len(target_boxes), len(gt_boxes)))
-
-        '''
-        if(len(target_boxes) != 0):
-            precision = hit / len(target_boxes)
-        else:
-            precision = 0.0
-        if(len(gt_boxes) != 0):
-            recall = hit / len(gt_boxes)
-        else:
-            recall = 0.0
-        if precision == 0 and recall == 0:
-            f1_score = 0.0
-        else:
-            f1_score = (2 * precision * recall) / (precision + recall)
-        '''
+        #self.get_logger().info('gt_frame_id: %d hit: %d detect total: %d gt total: %d' % (gt_frame_id, hit, len(target_boxes), len(gt_boxes)))
         
         return hit, len(target_boxes), len(gt_boxes)
 

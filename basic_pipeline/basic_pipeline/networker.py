@@ -1,21 +1,26 @@
 import os
 import sys
 import time
+import websocket
+import cv2
+import json
+import base64
 import threading
 import numpy as np
 import multiprocessing
+from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
 from rclpy.callback_groups import ReentrantCallbackGroup
 from rclpy.executors import MultiThreadedExecutor
-from bspipeline_interfaces.msg import Srvinfo
+from bspipeline_interfaces.msg import AbsBoxes
 from bspipeline_interfaces.msg import DetectRequest
 from bspipeline_interfaces.msg import DetectResponse
-from bspipeline_interfaces.msg import NetworkDelay
+from bspipeline_interfaces.msg import DetectDelay
 from cv_bridge import CvBridge # Package to convert between ROS and OpenCV Images
 import rclpy
 from rclpy.node import Node
 
 class Networker_Node(Node):
-
+    
     def __init__(self):
         # Command:
         # ros2 run basic_pipeline networker [client_name] [bandwidth_file_path]
@@ -62,21 +67,18 @@ class Networker_Node(Node):
                 self.network_throughput_index = 0
                 self.network_throughput_index_lock = threading.Lock()
             
-            self.server_list = {}
-            self.server_list_lock = threading.Lock()
-            self.target_server = None
-            self.last_state_is_no_server = False
+            # connect to web socket, single connect
+            self.inf_timeout = 2147483647
+            self.ws = websocket.WebSocket()
+            self.ws.connect("ws://localhost:12345", timeout = self.inf_timeout)
 
             self.br = CvBridge()
 
             self.group = ReentrantCallbackGroup()
-            self.srvinfo_listener = self.create_subscription(Srvinfo, 'server_info', self.srvinfo_callback, 10, callback_group=self.group)
             self.detect_request_listener = self.create_subscription(DetectRequest, self.name + '_detect_request_network', self.request_callback, 100, callback_group=self.group)
-            self.detect_response_listener = self.create_subscription(DetectResponse, self.name + '_detect_response', self.response_callback, 100, callback_group=self.group)
             self.detect_response_publisher = self.create_publisher(DetectResponse, self.name + '_detect_response_network', 10, callback_group=self.group)
-            self.network_delay_publisher = self.create_publisher(NetworkDelay, self.name + '_network_delay', 10, callback_group=self.group)
-            self.timer1 = self.create_timer(1.0, self.select_srv_callback, callback_group=self.group)
-            self.timer2 = self.create_timer(5.0, self.clear_srv_callback, callback_group=self.group)
+            self.detect_delay_publisher = self.create_publisher(DetectDelay, self.name + '_detect_delay', 10, callback_group=self.group)
+            self.timer = self.create_timer(0.05, self.socket_callback, callback_group=self.group)
 
             if(self.network_on == True):
                 self.get_logger().info('Networker init done. Simulating network delay with bandwidth file: %s' % (self.network_path))
@@ -89,80 +91,75 @@ class Networker_Node(Node):
             self.get_logger().info('Optional arguments: [client_name] | Necessary arguments: [bandwidth_file_path]')
 
     def request_callback(self, msg):
-        if(self.target_server == None):
-            self.get_logger().info('Frame %d has been dropped since no server is active.' % (msg.frame_id))
+        encode_start_time = time.time()
+        # get frame
+        frame = self.br.imgmsg_to_cv2(msg.frame)
+        # encode
+        img_encode = cv2.imencode('.jpg', frame)[1]
+        # to np array
+        numpy_encode = np.array(img_encode)
+        # to base64 (bytes)
+        data_encode_64 = base64.b64encode(numpy_encode)
+        # to str
+        str_encode = str(data_encode_64, 'utf-8')
+        # network delay
+        if(self.network_on == True):
+            with self.network_throughput_index_lock:
+                current_index = self.network_throughput_index
+                self.network_throughput_index = (self.network_throughput_index + 1) % len(self.network_path)
+            frame_bytes = sys.getsizeof(str_encode)
+            bandwidth = self.network_throughput[current_index]
+            network_delay = frame_bytes / bandwidth
+            time.sleep(network_delay)
         else:
-            if(self.network_on == True):
-                # current_frame = self.br.imgmsg_to_cv2(msg.frame)
-                # frame_bytes = sys.getsizeof(current_frame) # bytes
-                frame_bytes = 1393652
+            network_delay = 0.0
+        # make dict
+        # if network is on, network delay = encode delay + frame_bytes / bandwidth
+        # if network is off, network delay = encode delay
+        data = {
+            'frame': str_encode,
+            'frame_id': msg.frame_id,
+            'client_name': msg.client_name,
+            'client_send_time': time.time(),
+            'network_delay': network_delay + time.time() - encode_start_time
+        }
+        # to json
+        str_json = json.dumps(data)
+        # sending
+        self.ws.send(str_json)
+        self.get_logger().info('Frame %d has been delivered to server. Encoding + Sending time: %fs | Network Delay: %fs' % (msg.frame_id, time.time() - encode_start_time - network_delay, network_delay))
 
-                with self.network_throughput_index_lock:
-                    current_index = self.network_throughput_index
-                    self.network_throughput_index = (self.network_throughput_index + 1) % len(self.network_path)
-                
-                bandwidth = self.network_throughput[current_index] # bytes per second
-                
-                # network delay: simulated by transmission delay
-                self.get_logger().info('Frame %d: Size: %dB | Bandwidth: %dB/s' % (msg.frame_id, frame_bytes, bandwidth))
-                delay = frame_bytes / bandwidth
-                msg.network_delay = delay
-                time.sleep(delay)
+    def socket_callback(self):
+        self.timer.cancel()
+        self.get_logger().info('Networker is processing socket callback in a loop.')
+        while True:
+            recv = self.ws.recv()
+            # loads data
+            data = json.loads(recv)
+            response = DetectResponse()
+            response.frame_id = data['frame_id']
+            response.frame_processing_time = data['process_time']
+            response.returning_timestamp = data['client_send_time']
+            response.network_delay = data['network_delay']
+            response.server_name = data['server_name']
+            # processing boxes
+            for i in range(len(data['boxes'])):
+                absbox = AbsBoxes()
+                absbox.x1 = data['boxes'][i]['x1']
+                absbox.y1 = data['boxes'][i]['y1']
+                absbox.x2 = data['boxes'][i]['x2']
+                absbox.y2 = data['boxes'][i]['y2']
+                absbox.conf = data['boxes'][i]['conf']
+                absbox.name = data['boxes'][i]['name']
+                response.boxes.append(absbox)
+            self.detect_response_publisher.publish(response)
+            self.get_logger().info('Detect result of frame %d is back from server, deliver it to detector.' % (data['frame_id']))
 
-                pub = self.create_publisher(DetectRequest, self.target_server + '_detect_request', 10, callback_group=self.group)
-                pub.publish(msg)
-                self.get_logger().info('Frame %d network delay: %fs, and has been delivered to server: %s' % (msg.frame_id, delay, self.target_server))
-                del pub
-
-                networkdelay = NetworkDelay()
-                networkdelay.frame_id = msg.frame_id
-                networkdelay.bandwidth = bandwidth
-                networkdelay.network_delay = delay
-                self.network_delay_publisher.publish(networkdelay)
-            else:
-                pub = self.create_publisher(DetectRequest, self.target_server + '_detect_request', 10, callback_group=self.group)
-                pub.publish(msg)
-                self.get_logger().info('Frame %d has been delivered to server directly: %s' % (msg.frame_id, self.target_server))
-                del pub
-
-                networkdelay = NetworkDelay()
-                networkdelay.frame_id = msg.frame_id
-                networkdelay.bandwidth = 0
-                networkdelay.network_delay = 0.0
-                self.network_delay_publisher.publish(networkdelay)
-
-    def response_callback(self, msg):
-        self.detect_response_publisher.publish(msg)
-
-    def srvinfo_callback(self, msg):
-        with self.server_list_lock:
-            self.server_list[msg.server_name] = [msg.service_type, msg.service_name, msg.avg_detect_time]
-
-    def select_srv_callback(self):
-        with self.server_list_lock:
-            if(len(self.server_list) == 0):
-                if(self.last_state_is_no_server == False):
-                    self.target_server = None
-                    self.last_state_is_no_server = True
-                    self.get_logger().info('-----------------------------------------')
-                    self.get_logger().info('No server available now.')
-            else:
-                min_process_time = 1000.0
-                min_process_time_server = None
-                self.get_logger().info('-----------------------------------------')
-                self.get_logger().info('Current server list:')
-                for key in self.server_list:
-                    self.get_logger().info('Server name: %s | Service type: %s | Service name: %s | Avg processing time: %fs' % (key, self.server_list[key][0], self.server_list[key][1], self.server_list[key][2]))
-                    if(self.server_list[key][2] < min_process_time):
-                        min_process_time = self.server_list[key][2]
-                        min_process_time_server = key
-                self.target_server = min_process_time_server
-                self.last_state_is_no_server = False
-                self.get_logger().info('Target server selected: %s' % (min_process_time_server))
-    
-    def clear_srv_callback(self):
-        with self.server_list_lock:
-            self.server_list.clear()
+            detectdelay = DetectDelay()
+            detectdelay.frame_id = data['frame_id']
+            detectdelay.network_delay = data['network_delay']
+            detectdelay.process_time = data['process_time']
+            self.detect_delay_publisher.publish(detectdelay)
 
 
 def main(args=None):

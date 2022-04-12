@@ -3,8 +3,8 @@ from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
 from rclpy.callback_groups import ReentrantCallbackGroup
 from rclpy.executors import MultiThreadedExecutor
 from bspipeline_interfaces.msg import Camera
-from bspipeline_interfaces.msg import NetworkDelay
-from bspipeline_interfaces.msg import ResultDelay
+from bspipeline_interfaces.msg import DetectDelay
+from bspipeline_interfaces.msg import TrackDelay
 import rclpy
 from rclpy.node import Node
 
@@ -36,8 +36,8 @@ class Scheduler_Node(Node):
         self.camera_listener = self.create_subscription(Camera, self.name + '_camera_frame', self.camera_callback, 10, callback_group=self.group1)
         self.detect_publisher = self.create_publisher(Camera, self.name + '_detect_frame', 10, callback_group=self.group1)
         self.track_publisher = self.create_publisher(Camera, self.name + '_track_frame', 10, callback_group=self.group1)
-        self.delay_listener = self.create_subscription(NetworkDelay, self.name + '_network_delay', self.network_delay_callback, 10, callback_group=self.group2)
-        self.score_listener = self.create_subscription(ResultDelay, self.name + '_result_delay', self.result_delay_callback, 10, callback_group=self.group3)
+        self.detect_delay_listener = self.create_subscription(DetectDelay, self.name + '_detect_delay', self.detect_delay_callback, 10, callback_group=self.group2)
+        self.track_delay_listener = self.create_subscription(TrackDelay, self.name + '_track_delay', self.track_delay_callback, 10, callback_group=self.group3)
 
         self.get_logger().info('Scheduler init done.')
 
@@ -58,10 +58,12 @@ class Scheduler_Node(Node):
         else:
             self.counter += 1
         
-    def network_delay_callback(self, msg):
+    def detect_delay_callback(self, msg):
+        # to be done
         return
 
-    def result_delay_callback(self, msg):
+    def track_delay_callback(self, msg):
+        # to be done
         return
 
 

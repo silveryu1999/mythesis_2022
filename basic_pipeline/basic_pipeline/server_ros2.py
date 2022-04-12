@@ -4,7 +4,6 @@ import time
 import threading
 import torch
 import numpy as np
-from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
 from rclpy.callback_groups import ReentrantCallbackGroup
 from rclpy.executors import MultiThreadedExecutor
 from bspipeline_interfaces.msg import AbsBoxes

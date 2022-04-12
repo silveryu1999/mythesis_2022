@@ -1,7 +1,0 @@
-uint64 current_frame_id
-uint64 result_frame_id
-uint64 tracking_from_frame
-uint64 method
-uint64 total_delay
-uint64 result_delay
-uint64 track_delay

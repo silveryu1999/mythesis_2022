@@ -10,6 +10,7 @@ from bspipeline_interfaces.msg import Camera
 from bspipeline_interfaces.msg import AbsBoxes
 from bspipeline_interfaces.msg import DetectResult
 from bspipeline_interfaces.msg import TrackResult
+from bspipeline_interfaces.msg import TrackDelay
 from cv_bridge import CvBridge # Package to convert between ROS and OpenCV Images
 import cv2 # OpenCV library
 import rclpy
@@ -66,6 +67,7 @@ class Tracker_Node(Node):
         self.track_listener = self.create_subscription(Camera, self.name + '_track_frame', self.track_callback, 10, callback_group=self.mutex_group1)
         self.detect_result_listener = self.create_subscription(DetectResult, self.name + '_detect_result', self.detect_result_callback, 10, callback_group=self.mutex_group2)
         self.track_result_publisher = self.create_publisher(TrackResult, self.name + '_track_result', 10, callback_group=self.group)
+        self.track_delay_publisher = self.create_publisher(TrackDelay, self.name + '_track_delay', 10, callback_group=self.group)
 
         self.br = CvBridge()
 
@@ -100,8 +102,16 @@ class Tracker_Node(Node):
                 # local tracking
                 track_time_start = time.time()
                 track_result_msg, id_diff = self.tracking(self.br.imgmsg_to_cv2(msg.frame), msg.frame_id)
-                track_result_msg.process_time = time.time() - track_time_start
+                tracking_time = time.time() - track_time_start
+
+                track_result_msg.process_time = tracking_time
                 self.track_result_publisher.publish(track_result_msg)
+
+                trackdelay = TrackDelay()
+                trackdelay.frame_id = msg.frame_id
+                trackdelay.tracking_time = tracking_time
+                self.track_delay_publisher.publish(trackdelay)
+                
                 self.get_logger().info('Track result of frame %d has been published to collector. frame_delay: %d | tracking_time: %fs.' % (msg.frame_id, id_diff, track_result_msg.process_time))
             else:
                 self.get_logger().info('Tracker received frame %d from scheduler, but has been dropped due to tracker not init yet.' % (msg.frame_id))
@@ -114,6 +124,7 @@ class Tracker_Node(Node):
                 update_time_start = time.time()
                 with self.frame_history_rlock:
                     image = self.frame_history[msg.frame_id]
+                
                 # new tracker init
                 gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
                 self.LKtracker_previmg = gray_image
