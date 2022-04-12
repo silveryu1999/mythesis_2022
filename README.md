@@ -77,17 +77,7 @@ mkdir -p ~/your_ros2_workspace/src
 │   │   └── ...
 │   └── bspipeline_interfaces
 │       ├── msg
-│       │   ├── AbsBoxes.msg
-│       │   ├── Boxes.msg
-│       │   ├── Camera.msg
-│       │   ├── DetectDelay.msg
-│       │   ├── DetectRequest.msg
-│       │   ├── DetectResponse.msg
-│       │   ├── DetectResult.msg
-│       │   ├── DisplayResult.msg
-│       │   ├── Srvinfo.msg
-│       │   ├── TrackDelay.msg
-│       │   ├── TrackResult.msg
+│       │   ├── xxx.msg
 │       │   └── ...
 │       └── ...
 ├── server.py    (构建在Sanic之上的server)
