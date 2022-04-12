@@ -8,8 +8,9 @@ A distributed and end-cloud collaborated real-time object detection framework ba
 developing...  
 ~2022/03/06: 修复已有系统bug，除了最后的显示窗口，系统框架能完整运行  
 ~2022/03/10: 系统能够完整运行，同时修改系统框架设计，新增network模块  
-~2022/04/05: 完成network模块仿真设计，修改其它模块  
+~2022/04/05: 完成networker模块仿真设计，修改其它模块  
 ~2022/04/08: 完善用户接口，完善性能信息，添加测试用例和ground truth  
+~2022/04/12: 新增sanic server，同时添加websocket通信方式，调整了相关模块代码  
 
 ## Framework    
 Single Client-Server  
@@ -158,7 +159,7 @@ ros2 run basic_pipeline detector client1
 # Arguments:
 # client_name: optional, value: the client name, if not set, 'anonymous_client' will be default.
 ```
-#### Networker(Combined with server):  
+#### Networker (Combined with server):  
 ```
 # Command:
 ros2 run basic_pipeline networker [client_name] [bandwidth_file_path]
@@ -168,7 +169,7 @@ ros2 run basic_pipeline networker client1 ./network/xxx.txt
 # client_name: optional, value: the client name, if not set, 'anonymous_client' will be default.
 # bandwidth_file_path: necessary, value: a specific bandwidth file path or 0 (not simulating network delay).
 ```
-#### Networker_ros2(Combined with server_ros2):  
+#### Networker_ros2 (Combined with server_ros2):  
 ```
 # Command:
 ros2 run basic_pipeline networker_ros2 [client_name] [bandwidth_file_path]
@@ -208,7 +209,7 @@ ros2 run basic_pipeline displayer client1
 ```
 服务器运行：  
 最好在客户端启动前启动，等待模型加载完毕，避免开始的请求没被接收到  
-#### Server(Sanic server):  
+#### Server (Sanic server):  
 ```
 # Command:
 sanic server.app --port=12345 --workers=1 --no-access-logs
@@ -218,7 +219,7 @@ python3 server.py
 # Currently it only supports worker=1, it means that the server use one main process to handle the requests.
 # The port can be modified, change it in both network and server.
 ```  
-#### Server_ros2(Ros2 node server):  
+#### Server_ros2 (Ros2 node server):  
 ```
 # Command:
 ros2 run basic_pipeline server_ros2 [server_name]
