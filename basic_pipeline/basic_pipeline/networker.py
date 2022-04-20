@@ -110,10 +110,12 @@ class Networker_Node(Node):
                 self.network_throughput_index = (self.network_throughput_index + 1) % len(self.network_path)
             frame_bytes = sys.getsizeof(str_encode)
             bandwidth = self.network_throughput[current_index]
+            bandwidth_Mb_s = bandwidth * 8.0 / 1000000.0
             network_delay = frame_bytes / bandwidth
             time.sleep(network_delay)
         else:
             network_delay = 0.0
+            bandwidth_Mb_s = 0.0
         # make dict
         # if network is on, network delay = encode delay + frame_bytes / bandwidth
         # if network is off, network delay = encode delay
@@ -122,6 +124,7 @@ class Networker_Node(Node):
             'frame_id': msg.frame_id,
             'client_name': msg.client_name,
             'client_detector_send_time': msg.sending_timestamp,
+            'bandwidth': bandwidth_Mb_s,
             'client_networker_send_time': time.time(),
             'network_delay': encode_time + network_delay
         }
@@ -144,6 +147,7 @@ class Networker_Node(Node):
             response.returning_timestamp = data['client_detector_send_time']
             response.network_delay = data['network_delay']
             response.server_name = data['server_name']
+            response.bandwidth = data['bandwidth']
             # processing boxes
             for i in range(len(data['boxes'])):
                 absbox = AbsBoxes()

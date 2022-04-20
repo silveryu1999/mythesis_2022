@@ -29,6 +29,7 @@ setup(
         	'collector = basic_pipeline.collector:main',
         	'displayer = basic_pipeline.displayer:main',
         	'server_ros2 = basic_pipeline.server_ros2:main',
+        	'monitor = basic_pipeline.monitor:main',
         ],
     },
 )

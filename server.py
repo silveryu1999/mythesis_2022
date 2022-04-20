@@ -24,7 +24,7 @@ async def handler(request, ws):
         total_start_time = time.time()
 
         data = json.loads(str_json)
-        str_encode, frame_id, client_detector_send_time, client_networker_send_time, client_name, network_delay = data['frame'], data['frame_id'], data['client_detector_send_time'], data['client_networker_send_time'], data['client_name'], data['network_delay']
+        str_encode, frame_id, client_detector_send_time, client_networker_send_time, client_name, network_delay, bandwidth = data['frame'], data['frame_id'], data['client_detector_send_time'], data['client_networker_send_time'], data['client_name'], data['network_delay'], data['bandwidth']
         c_to_s_time = time.time() - client_networker_send_time
         
         # await asyncio.sleep(network_delay)
@@ -70,6 +70,7 @@ async def handler(request, ws):
             'server_send_time': time.time(),
             'network_delay': network_delay,
             'server_name': "server",
+            'bandwidth': bandwidth,
             'process_time': time.time() - total_start_time
         }
         

@@ -132,6 +132,7 @@ class Collector_Node(Node):
         result.total_time = msg.total_time
         result.network_delay = msg.network_delay
         result.server_detect_time = msg.process_time
+        result.bandwidth = msg.bandwidth
 
         if(self.load_ground_truth == True):
             result.performance_is_on = 1

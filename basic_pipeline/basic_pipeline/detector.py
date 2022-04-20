@@ -69,6 +69,7 @@ class Detector_Node(Node):
 			result.process_time = msg.frame_processing_time
 			result.total_time = total_time
 			result.flight_time = total_time - msg.frame_processing_time - msg.network_delay
+			result.bandwidth = msg.bandwidth
 			self.detect_result_publisher.publish(result)
 			self.get_logger().info('Detect result of frame %d has been published to tracker and collector.' % (msg.frame_id))
 
@@ -77,6 +78,7 @@ class Detector_Node(Node):
 			detectdelay.total_delay = total_time
 			detectdelay.network_delay = msg.network_delay
 			detectdelay.process_time = msg.frame_processing_time
+			detectdelay.bandwidth = msg.bandwidth
 			self.detect_delay_publisher.publish(detectdelay)
 		else:
 			self.get_logger().info('Detect result of frame %d is outdated, now dropping it.' % (msg.frame_id))
