@@ -7,6 +7,7 @@ from bspipeline_interfaces.msg import Camera
 from bspipeline_interfaces.msg import DetectRequest
 from bspipeline_interfaces.msg import DetectResponse
 from bspipeline_interfaces.msg import DetectResult
+from bspipeline_interfaces.msg import DetectDelay
 import rclpy
 from rclpy.node import Node
 
@@ -34,6 +35,7 @@ class Detector_Node(Node):
 		self.detect_request_publisher = self.create_publisher(DetectRequest, self.name + '_detect_request_network', 10, callback_group=self.group)
 		self.detect_response_listener = self.create_subscription(DetectResponse, self.name + '_detect_response_network', self.response_callback, 10, callback_group=self.group)
 		self.detect_result_publisher = self.create_publisher(DetectResult, self.name + '_detect_result', 10, callback_group=self.group)
+		self.detect_delay_publisher = self.create_publisher(DetectDelay, self.name + '_detect_delay', 10, callback_group=self.group)
 		
 		self.last_detect_frame_id = 0
 		self.last_detect_frame_id_lock = threading.Lock()
@@ -67,9 +69,15 @@ class Detector_Node(Node):
 			result.process_time = msg.frame_processing_time
 			result.total_time = total_time
 			result.flight_time = total_time - msg.frame_processing_time - msg.network_delay
-
 			self.detect_result_publisher.publish(result)
 			self.get_logger().info('Detect result of frame %d has been published to tracker and collector.' % (msg.frame_id))
+
+			detectdelay = DetectDelay()
+			detectdelay.frame_id = msg.frame_id
+			detectdelay.total_delay = total_time
+			detectdelay.network_delay = msg.network_delay
+			detectdelay.process_time = msg.frame_processing_time
+			self.detect_delay_publisher.publish(detectdelay)
 		else:
 			self.get_logger().info('Detect result of frame %d is outdated, now dropping it.' % (msg.frame_id))
 
@@ -79,7 +87,7 @@ def main(args=None):
 	
 	try:
 		detector_node = Detector_Node()
-		executor = MultiThreadedExecutor(num_threads=4)
+		executor = MultiThreadedExecutor(num_threads=5)
 		executor.add_node(detector_node)
 		try:
 			executor.spin()

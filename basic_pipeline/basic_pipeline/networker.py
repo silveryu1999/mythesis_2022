@@ -102,6 +102,7 @@ class Networker_Node(Node):
         data_encode_64 = base64.b64encode(numpy_encode)
         # to str
         str_encode = str(data_encode_64, 'utf-8')
+        encode_time = time.time() - encode_start_time
         # network delay
         if(self.network_on == True):
             with self.network_throughput_index_lock:
@@ -120,14 +121,15 @@ class Networker_Node(Node):
             'frame': str_encode,
             'frame_id': msg.frame_id,
             'client_name': msg.client_name,
-            'client_send_time': time.time(),
-            'network_delay': network_delay + time.time() - encode_start_time
+            'client_detector_send_time': msg.sending_timestamp,
+            'client_networker_send_time': time.time(),
+            'network_delay': encode_time + network_delay
         }
         # to json
         str_json = json.dumps(data)
         # sending
         self.ws.send(str_json)
-        self.get_logger().info('Frame %d has been delivered to server. Encoding + Sending time: %fs | Network Delay: %fs' % (msg.frame_id, time.time() - encode_start_time - network_delay, network_delay))
+        self.get_logger().info('Frame %d has been delivered to server. Total Delay: %fs | Encoding + Sending time: %fs | Network Delay: %fs' % (msg.frame_id, encode_time + network_delay, encode_time, network_delay))
 
     def socket_callback(self):
         self.timer.cancel()
@@ -139,7 +141,7 @@ class Networker_Node(Node):
             response = DetectResponse()
             response.frame_id = data['frame_id']
             response.frame_processing_time = data['process_time']
-            response.returning_timestamp = data['client_send_time']
+            response.returning_timestamp = data['client_detector_send_time']
             response.network_delay = data['network_delay']
             response.server_name = data['server_name']
             # processing boxes
@@ -154,12 +156,6 @@ class Networker_Node(Node):
                 response.boxes.append(absbox)
             self.detect_response_publisher.publish(response)
             self.get_logger().info('Detect result of frame %d is back from server, deliver it to detector.' % (data['frame_id']))
-
-            detectdelay = DetectDelay()
-            detectdelay.frame_id = data['frame_id']
-            detectdelay.network_delay = data['network_delay']
-            detectdelay.process_time = data['process_time']
-            self.detect_delay_publisher.publish(detectdelay)
 
 
 def main(args=None):

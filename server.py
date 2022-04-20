@@ -21,19 +21,15 @@ async def handler(request, ws):
     while True:
         str_json = await ws.recv()
         
-        print("receive!")
-        
         total_start_time = time.time()
 
         data = json.loads(str_json)
-        str_encode, frame_id, client_send_time, client_name, network_delay = data['frame'], data['frame_id'], data['client_send_time'], data['client_name'], data['network_delay']
-        c_to_s_time = time.time() - client_send_time
+        str_encode, frame_id, client_detector_send_time, client_networker_send_time, client_name, network_delay = data['frame'], data['frame_id'], data['client_detector_send_time'], data['client_networker_send_time'], data['client_name'], data['network_delay']
+        c_to_s_time = time.time() - client_networker_send_time
         
-        # the network delays in here
-        # it is async sleep, not sync sleep (it won't blocking other requests)
         # await asyncio.sleep(network_delay)
         
-        process_start_time = time.time()
+        # process_start_time = time.time()
         
         # json to frame
         data_encode_64 = str_encode.encode('utf-8')
@@ -65,20 +61,19 @@ async def handler(request, ws):
                 }
             )
         
-        total_time = time.time() - total_start_time
-        process_time = time.time() - process_start_time
+        # process_time = time.time() - process_start_time
         response = {
             'frame_id': frame_id,
             'boxes': response_boxes,
-            'process_time': process_time,
             'c_to_s_time': c_to_s_time,
-            'client_send_time': client_send_time,
+            'client_detector_send_time': client_detector_send_time,
             'server_send_time': time.time(),
             'network_delay': network_delay,
-            'server_name': "server"
+            'server_name': "server",
+            'process_time': time.time() - total_start_time
         }
         
-        print("Frame %d from %s has been processed. Total Time: %fs| Process Time: %fs | Additional Time: %fs" % (frame_id, client_name, total_time, process_time, total_time - process_time))
+        print("Frame %d from %s has been processed. C to S time: %fs | Process Time: %fs" % (frame_id, client_name, c_to_s_time, time.time() - total_start_time))
 
         await ws.send(json.dumps(response))
 
