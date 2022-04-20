@@ -11,6 +11,7 @@ developing...
 ~2022/04/05: 完成networker模块仿真设计，修改其它模块  
 ~2022/04/08: 完善用户接口，完善性能信息，添加测试用例和ground truth  
 ~2022/04/12: 新增sanic server，同时添加websocket通信方式，调整了相关模块代码  
+~2022/04/20: 添加自适应的检测和跟踪间隔调度，修改其它模块
 
 ## Framework    
 Single Client-Server  
@@ -220,7 +221,7 @@ ros2 run basic_pipeline server server1
 - [x] 传输用于检测的图片时，对图片进行压缩  
 - [x] 新增networker，完成对实际网络吞吐量的仿真  
 - [x] collector对结果进行得分评估，包含准确率(IOU)、召回率、F1-Score三个指标  
-- [ ] scheduler根据网络延迟和跟踪延迟评估，调整检测和跟踪间隔  
+- [x] scheduler根据网络延迟和跟踪延迟评估，调整检测和跟踪间隔  
 - [x] networker和server之间的通信方式从ros2 topic方式替换成websocket，server将不再运行在ros2结点上  
 - [ ] 在多样网络环境下进行测试，获取更多测试结果  
 - [ ] 提高sanic server的性能  
