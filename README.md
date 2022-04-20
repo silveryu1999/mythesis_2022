@@ -69,6 +69,7 @@ mkdir -p ~/your_ros2_workspace/src
 │   │   │   ├── collector.py
 │   │   │   ├── detector.py
 │   │   │   ├── displayer.py
+│   │   │   ├── monitor.py
 │   │   │   ├── networker.py    （使用websocket通信方式的networker）
 │   │   │   ├── networker_ros2.py    (使用ros2 topic通信方式的networker)
 │   │   │   ├── scheduler.py
