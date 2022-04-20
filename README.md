@@ -11,7 +11,7 @@ developing...
 ~2022/04/05: 完成networker模块仿真设计，修改其它模块  
 ~2022/04/08: 完善用户接口，完善性能信息，添加测试用例和ground truth  
 ~2022/04/12: 新增sanic server，同时添加websocket通信方式，调整了相关模块代码  
-~2022/04/20: 添加自适应的检测和跟踪间隔调度，修改其它模块
+~2022/04/20: 添加自适应的检测和跟踪间隔调度，添加性能监视模块，修改其它模块
 
 ## Framework    
 Single Client-Server  
@@ -192,6 +192,15 @@ ros2 run basic_pipeline collector client1 ./ground_truth/xxx/
 ros2 run basic_pipeline displayer [client_name]
 # Example:
 ros2 run basic_pipeline displayer client1
+# Arguments:
+# client_name: optional, value: the client name, if not set, 'anonymous_client' will be default.
+```
+#### Monitor:
+```
+# Command:
+ros2 run basic_pipeline monitor [client_name]
+# Example:
+ros2 run basic_pipeline monitor client1
 # Arguments:
 # client_name: optional, value: the client name, if not set, 'anonymous_client' will be default.
 ```
