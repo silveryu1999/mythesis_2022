@@ -197,7 +197,7 @@ ros2 run basic_pipeline displayer client1
 ```
 服务器运行：  
 最好在客户端启动前启动，等待模型加载完毕，避免开始的请求没被接收到  
-同样建议客户端结点都运行在 ~/your_ros2_workspace 路径下  
+同样建议服务器结点都运行在 ~/your_ros2_workspace 路径下  
 #### Server (Sanic server):  
 ```
 # Command:
