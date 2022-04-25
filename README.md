@@ -12,7 +12,7 @@ developing...
 ~2022/04/08: 完善用户接口，完善性能信息，添加测试用例和ground truth  
 ~2022/04/12: 新增sanic server，同时添加websocket通信方式，调整了相关模块代码  
 ~2022/04/20: 添加自适应的检测和跟踪任务调度，添加性能监视模块，修改其它模块  
-~2022/04/25: 添加仿真服务器，修正tracker的跟踪方式，修改其它模块  
+~2022/04/25: 添加仿真server，修正tracker的跟踪方式(使用上一次的track result进行跟踪，或收到检测结果后在cache上跳帧跟踪到最新帧)，修改其它模块  
 
 ## Framework    
 Single Client-Server  
