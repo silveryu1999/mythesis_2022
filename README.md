@@ -11,7 +11,8 @@ developing...
 ~2022/04/05: 完成networker模块仿真设计，修改其它模块  
 ~2022/04/08: 完善用户接口，完善性能信息，添加测试用例和ground truth  
 ~2022/04/12: 新增sanic server，同时添加websocket通信方式，调整了相关模块代码  
-~2022/04/20: 添加自适应的检测和跟踪间隔调度，添加性能监视模块，修改其它模块
+~2022/04/20: 添加自适应的检测和跟踪任务调度，添加性能监视模块，修改其它模块  
+~2022/04/25: 添加仿真服务器，修正tracker的跟踪方式，修改其它模块  
 
 ## Framework    
 Single Client-Server  
@@ -83,6 +84,7 @@ mkdir -p ~/your_ros2_workspace/src
 │       │   └── ...
 │       └── ...
 ├── server.py    (构建在Sanic之上的server)
+├── simulate_server.py    (构建在Sanic之上的仿真server)
 ├── vision_opencv    (注意参考前面cv_bridge的链接，安装相关依赖并且build完毕)
 │   ├── cv_bridge
 │   ├── image_geometry
@@ -214,6 +216,16 @@ ros2 run basic_pipeline monitor client1
 sanic server.app --port=12345 --workers=1 --no-access-logs
 or more simply:
 python3 server.py
+# Note:
+# Currently it only supports worker=1, it means that the server use one main process to handle the requests.
+# The port can be modified, change it in both network and server.
+```  
+#### Simulate Server (Sanic server):  
+```
+# Command:
+sanic simulate_server.app --port=12345 --workers=1 --no-access-logs
+or more simply:
+python3 simulate_server.py
 # Note:
 # Currently it only supports worker=1, it means that the server use one main process to handle the requests.
 # The port can be modified, change it in both network and server.
