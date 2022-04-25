@@ -111,9 +111,9 @@ class Displayer_Node(Node):
             if(self.is_origin == True):
                 self.is_origin = False
 
-            result_img = get_display_img(current_frame, msg.result_boxes, 0)
-            cv2.imshow("Displayer of " + self.name, result_img)
-            cv2.waitKey(1)
+            #result_img = get_display_img(current_frame, msg.result_boxes, 0)
+            #cv2.imshow("Displayer of " + self.name, result_img)
+            #cv2.waitKey(1)
             #cv2.imwrite('/home/silveryu1999/result/' + str(msg.current_camera_frame_id) + '_detect' + '.jpg', result_img)
 
             if(msg.performance_is_on == 1):
@@ -130,6 +130,7 @@ class Displayer_Node(Node):
                 self.detect_total_network_delay += msg.network_delay
                 self.detect_count += 1
 
+                # total_time: including the cost of passing messages in ros2, 
                 avg_pre, avg_rec, avg_f1 = cal_f1_score(self.detect_total_tp, self.detect_total_tp_and_fp, self.detect_total_tp_and_fn)
                 self.get_logger().info('Detect Average Performance: Total Frames: %d | Precision: %f | Recall: %f | F1 Score: %f | Total Frame Diff/Delay: %f (Result) | Total Time: %fs | Server Detect Time: %fs | Network Delay: %fs' % \
                 (self.detect_count, avg_pre, avg_rec, avg_f1, self.detect_total_result_delay / self.detect_count, self.detect_total_total_time / self.detect_count, self.detect_total_server_detect_time / self.detect_count, self.detect_total_network_delay / self.detect_count))

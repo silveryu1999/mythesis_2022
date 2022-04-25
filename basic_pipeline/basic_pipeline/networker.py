@@ -117,8 +117,8 @@ class Networker_Node(Node):
             network_delay = 0.0
             bandwidth_Mb_s = 0.0
         # make dict
-        # if network is on, network delay = encode delay + frame_bytes / bandwidth
-        # if network is off, network delay = encode delay
+        # if network is on, network delay = encode delay + frame_bytes / bandwidth + c_to_s_time + s_to_c_time
+        # if network is off, network delay = encode delay + c_to_s_time + s_to_c_time
         data = {
             'frame': str_encode,
             'frame_id': msg.frame_id,
@@ -142,10 +142,12 @@ class Networker_Node(Node):
             # loads data
             data = json.loads(recv)
             response = DetectResponse()
+            s_to_c_time = time.time() - data['server_send_time']
+            # update network delay
+            response.network_delay = data['network_delay'] + s_to_c_time
             response.frame_id = data['frame_id']
             response.frame_processing_time = data['process_time']
             response.returning_timestamp = data['client_detector_send_time']
-            response.network_delay = data['network_delay']
             response.server_name = data['server_name']
             response.bandwidth = data['bandwidth']
             # processing boxes

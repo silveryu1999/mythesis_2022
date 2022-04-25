@@ -2,11 +2,7 @@ import sys
 import numpy as np
 import matplotlib.pyplot as plt
 from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
-from rclpy.callback_groups import ReentrantCallbackGroup
 from rclpy.executors import SingleThreadedExecutor
-from rclpy.executors import MultiThreadedExecutor
-from bspipeline_interfaces.msg import DetectDelay
-from bspipeline_interfaces.msg import TrackDelay
 from bspipeline_interfaces.msg import DisplayResult
 import rclpy
 from rclpy.node import Node
@@ -74,6 +70,7 @@ class Monitor_Node(Node):
         self.track_time = np.array([])
         # subplot7: track frame diff
         self.track_result_delay = np.array([])
+        self.track_from_delay = np.array([])
 
         plt.ion()
 
@@ -97,7 +94,8 @@ class Monitor_Node(Node):
             self.track_recall = np.append(self.track_recall, recall)
             self.track_f1_score = np.append(self.track_f1_score, f1_score)
             self.track_time = np.append(self.track_time, msg.local_tracking_time)
-            self.track_result_delay = np.append(self.track_result_delay, msg.current_camera_frame_id - msg.tracking_from_frame)
+            self.track_result_delay = np.append(self.track_result_delay, msg.current_camera_frame_id - msg.display_result_frame_id)
+            self.track_from_delay = np.append(self.track_from_delay, msg.display_result_frame_id - msg.tracking_from_frame)
         else:
             return
 
@@ -148,8 +146,10 @@ class Monitor_Node(Node):
         
         plt.subplot(2,4,7)
         if(self.track_index > 0):
-            plt.plot(np.array(range(1, self.track_index + 1)), self.track_result_delay)
+            plt.plot(np.array(range(1, self.track_index + 1)), self.track_result_delay, label = 'result')
+            plt.plot(np.array(range(1, self.track_index + 1)), self.track_from_delay, label = 'track')
             plt.ylabel("Frame Diff")
+            plt.legend()
             plt.title("Track Frame Diff")
 
         plt.subplot(2,4,8)

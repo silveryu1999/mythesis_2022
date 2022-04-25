@@ -2,19 +2,10 @@ from sanic import Sanic
 import asyncio
 import time
 import json
-import base64
+import csv
 import numpy as np
-import cv2 # OpenCV library
-import torch
-from yolov4 import *
 
 app = Sanic("server")
-
-@app.listener("before_server_start")
-async def worker_start(app, loop):
-	app.ctx.use_cuda = True
-	use_tiny = False
-	app.ctx.darknet, app.ctx.class_names = NewDarknet(use_tiny, app.ctx.use_cuda)
 
 async def handler(request, ws):
     while True:
@@ -29,44 +20,31 @@ async def handler(request, ws):
         # update network delay
         network_delay = network_delay + c_to_s_time
         
-        # json to frame
-        data_encode_64 = str_encode.encode('utf-8')
-        data_encode = np.frombuffer(base64.b64decode(data_encode_64), np.uint8)
-        current_frame = cv2.imdecode(data_encode, cv2.IMREAD_COLOR)
-
-        # detect
-        sized = cv2.resize(current_frame, (app.ctx.darknet.width, app.ctx.darknet.height))
-        sized = cv2.cvtColor(sized, cv2.COLOR_BGR2RGB)
-
-        boxes = do_detect(app.ctx.darknet, sized, 0.4, 0.6, app.ctx.use_cuda)
-        boxes_zero = np.array(boxes[0]).tolist()
-
-        width = current_frame.shape[1]
-        height = current_frame.shape[0]
-
-        torch.cuda.empty_cache()
-
         response_boxes = []
-        for i in range(len(boxes_zero)):
-            response_boxes.append(
-                {
-                    'x1': int(boxes_zero[i][0] * width),
-                    'y1': int(boxes_zero[i][1] * height),
-                    'x2': int(boxes_zero[i][2] * width),
-                    'y2': int(boxes_zero[i][3] * height),
-                    'conf': boxes_zero[i][5],
-                    'name': app.ctx.class_names[int(boxes_zero[i][6])]
-                }
-            )
+        # get result
+        with open("/home/silveryu1999/ground_truth/154/" + str(frame_id) + '.txt', encoding="utf-8") as cf:
+        	lines = csv.reader(cf, delimiter=",")
+        	for line in lines:
+        		response_boxes.append(
+        			{
+        				'x1': int(line[1]),
+                    	'y1': int(line[2]),
+                    	'x2': int(line[3]),
+                    	'y2': int(line[4]),
+                    	'conf': float(line[5]),
+                    	'name': line[0]
+        			}
+        		)
         
         response = {
             'frame_id': frame_id,
             'boxes': response_boxes,
+            'c_to_s_time': c_to_s_time,
             'client_detector_send_time': client_detector_send_time,
+            'server_send_time': time.time(),
             'network_delay': network_delay,
             'server_name': "server",
             'bandwidth': bandwidth,
-            'server_send_time': time.time(),
             'process_time': time.time() - total_start_time
         }
         

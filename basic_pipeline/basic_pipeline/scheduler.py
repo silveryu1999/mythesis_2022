@@ -71,6 +71,10 @@ class Scheduler_Node(Node):
                 self.detect_counter += 1
         
         # schedule the track frame
+        self.track_publisher.publish(msg)
+        self.get_logger().info('Frame %d has been submitted to the tracker.' % (msg.frame_id))
+
+        '''
         if(self.track_counter == 0):
             self.track_publisher.publish(msg)
             self.get_logger().info('Frame %d has been submitted to the tracker.' % (msg.frame_id))
@@ -80,10 +84,11 @@ class Scheduler_Node(Node):
                 self.track_counter = 0
             else:
                 self.track_counter += 1
+        '''
         
     def detect_delay_callback(self, msg):
         # the frame rate of detect should not exceed the bottlenet/speed of detect
-        curr_detect_time = msg.network_delay + msg.process_time
+        curr_detect_time = max(msg.network_delay, msg.process_time)
         curr_detect_frame_rate = 1 / curr_detect_time
 
         # an easy policy of scheduling
@@ -116,7 +121,7 @@ class Scheduler_Node(Node):
         # increase, decrease or keep the interval
         # if the abs of the difference of both frame rate is less than the threshold, keep the interval
         with self.track_interval_wlock:
-            # old_interval = self.track_interval
+            old_interval = self.track_interval
 
             if(abs((curr_track_frame_rate) * (self.track_interval + 1) - self.camera_frame_rate) > 1):
                 if((curr_track_frame_rate) * (self.track_interval + 1) - self.camera_frame_rate < 0):
@@ -126,14 +131,13 @@ class Scheduler_Node(Node):
                     # decrease the interval
                     self.track_interval = max(0, self.track_interval - 1)
 
-            '''
             if(self.track_interval > old_interval):
                 self.get_logger().info('Interval of track: Increased. Current value: %d.' % (self.track_interval))
             elif(self.track_interval == old_interval):
                 self.get_logger().info('Interval of track: Keeped. Current value: %d.' % (self.track_interval))
             else:
                 self.get_logger().info('Interval of track: Decreased. Current value: %d.' % (self.track_interval))
-            '''
+            
 
 
 def main(args=None):
