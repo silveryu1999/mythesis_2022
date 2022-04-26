@@ -248,7 +248,7 @@ ros2 run basic_pipeline server server1
 - [x] networker和server之间的通信方式从ros2 topic方式替换成websocket，server将不再运行在ros2结点上  
 - [ ] 在多样网络环境下进行测试，获取更多测试结果  
 - [ ] 提高sanic server的性能  
-- [ ] 完成client与server之间的发现机制，为分布式框架多对多框架提供基础  
+- [ ] 完成tcp socket通信方式下client与server之间的发现机制，为分布式框架多对多框架提供基础  
 - [ ] client之间的结点通过共享内存方式减少传递帧的开销  
 - [ ] 在系统能够正常运行同时提高camera帧率  
 - [ ] 用roscpp重构客户端部分以提高性能  
