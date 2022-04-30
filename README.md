@@ -13,6 +13,7 @@ developing...
 ~2022/04/12: 新增sanic server，同时添加websocket通信方式，调整了相关模块代码  
 ~2022/04/20: 添加自适应的检测和跟踪任务调度，添加性能监视模块，修改其它模块  
 ~2022/04/25: 添加仿真server，修正tracker的跟踪方式(使用上一次的track result进行跟踪，或收到检测结果后在cache上跳帧跟踪到最新帧)，修改其它模块  
+~2022/04/30: 添加glimpse版本的scheduler和detector，修正其它模块的一些错误  
 
 ## Framework    
 Single Client-Server  
@@ -69,11 +70,13 @@ mkdir -p ~/your_ros2_workspace/src
 │   │   │   ├── camera.py
 │   │   │   ├── collector.py
 │   │   │   ├── detector.py
+│   │   │   ├── detector_glimpse.py
 │   │   │   ├── displayer.py
 │   │   │   ├── monitor.py
 │   │   │   ├── networker.py    （使用websocket通信方式的networker）
 │   │   │   ├── networker_ros2.py    (使用ros2 topic通信方式的networker)
 │   │   │   ├── scheduler.py
+│   │   │   ├── scheduler_glimpse.py
 │   │   │   ├── server_ros2.py    (构建在ros2 node之上的server)
 │   │   │   ├── tracker.py
 │   │   │   └── ...
@@ -141,12 +144,32 @@ ros2 run basic_pipeline scheduler client1
 # Arguments:
 # client_name: optional, value: the client name, if not set, 'anonymous_client' will be default.
 ```
+#### Scheduler (Glimpse Version):  
+```
+# Command:
+ros2 run basic_pipeline scheduler [client_name] [pixel_diff] [pixel_count_rate]
+# Example:
+ros2 run basic_pipeline scheduler client1 25 0.1
+# Arguments:
+# client_name: optional, value: the client name, if not set, 'anonymous_client' will be default.
+# pixel_diff: necessary, value: the threshold of the abs value difference of two pixels, this should be an int between 0 and 255
+# pixel_count_rate: necessary, value: the threshold of the 'different' pixels' rate, this should be a float between 0 and 1
+```
 #### Detector:  
 ```
 # Command:
 ros2 run basic_pipeline detector [client_name]
 # Example:
 ros2 run basic_pipeline detector client1
+# Arguments:
+# client_name: optional, value: the client name, if not set, 'anonymous_client' will be default.
+```
+#### Detector (Glimpse Version):  
+```
+# Command:
+ros2 run basic_pipeline detector_glimpse [client_name]
+# Example:
+ros2 run basic_pipeline detector_glimpse client1
 # Arguments:
 # client_name: optional, value: the client name, if not set, 'anonymous_client' will be default.
 ```
@@ -246,7 +269,7 @@ ros2 run basic_pipeline server server1
 - [x] collector对结果进行得分评估，包含准确率(IOU)、召回率、F1-Score三个指标  
 - [x] scheduler根据网络延迟和跟踪延迟评估，调整检测和跟踪间隔  
 - [x] networker和server之间的通信方式从ros2 topic方式替换成websocket，server将不再运行在ros2结点上  
-- [ ] 在多样网络环境下进行测试，获取更多测试结果  
+- [x] 在多样网络环境下进行测试，获取更多测试结果  
 - [ ] 提高sanic server的性能  
 - [ ] 完成tcp socket通信方式下client与server之间的发现机制，为分布式框架多对多框架提供基础  
 - [ ] client之间的结点通过共享内存方式减少传递帧的开销  
