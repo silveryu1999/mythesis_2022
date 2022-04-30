@@ -21,6 +21,10 @@ async def handler(request, ws):
         network_delay = network_delay + c_to_s_time
         
         response_boxes = []
+        
+        # adding a process delay
+        time.sleep(0.15)
+        
         # get result
         with open("/home/silveryu1999/ground_truth/154/" + str(frame_id) + '.txt', encoding="utf-8") as cf:
         	lines = csv.reader(cf, delimiter=",")
@@ -28,11 +32,11 @@ async def handler(request, ws):
         		response_boxes.append(
         			{
         				'x1': int(line[1]),
-                    	'y1': int(line[2]),
-                    	'x2': int(line[3]),
-                    	'y2': int(line[4]),
-                    	'conf': float(line[5]),
-                    	'name': line[0]
+                    			'y1': int(line[2]),
+                    			'x2': int(line[3]),
+                    			'y2': int(line[4]),
+                    			'conf': float(line[5]),
+                    			'name': line[0]
         			}
         		)
         

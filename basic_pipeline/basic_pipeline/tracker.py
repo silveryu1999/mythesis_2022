@@ -69,7 +69,7 @@ class Tracker_Node(Node):
 
         self.br = CvBridge()
         self.camera_frame_rate = 0
-        self.tracking_once_time = 0.0
+        self.last_tracking_once_time = 0.01
 
         # frame_history: store the frames for tracking
         self.frame_history_rwlock = rwlock.RWLockFair()
@@ -88,7 +88,9 @@ class Tracker_Node(Node):
         self.LKtracker_last_track_task_frame_id = 0
         self.LKtracker_last_update_frame_id = 0 # frame_id of last detect result that updates the tracker
         # self.LKtracker_feature_params = dict(maxCorners = 200, qualityLevel = 0.001, minDistance = 30)
-        self.LKtracker_feature_params = dict(maxCorners = 300, qualityLevel = 0.003, minDistance = 25)
+        # self.LKtracker_feature_params = dict(maxCorners = 300, qualityLevel = 0.003, minDistance = 25)
+        # self.LKtracker_feature_params = dict(maxCorners = 500, qualityLevel = 0.003, minDistance = 25)
+        self.LKtracker_feature_params = dict(maxCorners = 500, qualityLevel = 0.001, minDistance = 20)
         self.LKtracker_lk_params = dict(winSize = (15, 15), maxLevel = 2, criteria = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 0.03))
 
         self.get_logger().info('Tracker init done.')
@@ -107,7 +109,7 @@ class Tracker_Node(Node):
 
                 tracking_once_time_start = time.time()
                 new_boxes, new_points = self.tracking_once(self.LKtracker_previmg, curr_gray, self.LKtracker_prevpoints, self.LKtracker_prevboxes)
-                self.tracking_once_time = time.time() - tracking_once_time_start
+                tracking_once_time = time.time() - tracking_once_time_start
 
                 self.LKtracker_previmg = curr_gray
                 self.LKtracker_prevpoints = new_points
@@ -118,10 +120,10 @@ class Tracker_Node(Node):
                 track_result.result_boxes = new_boxes
                 track_result.frame_id = msg.frame_id
                 track_result.last_detect_result_frame_id = self.LKtracker_last_update_frame_id
-                track_result.process_time = self.tracking_once_time
+                track_result.process_time = tracking_once_time
                 self.track_result_publisher.publish(track_result)
 
-                self.get_logger().info('Track result of frame %d has been published to collector. track_from_frame_diff: %d | tracking_once_time: %fs.' % (msg.frame_id, msg.frame_id - self.LKtracker_last_update_frame_id, self.tracking_once_time))
+                self.get_logger().info('Track result of frame %d has been published to collector. track_from_frame_diff: %d | tracking_once_time: %fs.' % (msg.frame_id, msg.frame_id - self.LKtracker_last_update_frame_id, tracking_once_time))
             else:
                 # waiting for tracker init
                 self.LKtracker_last_track_task_frame_id = msg.frame_id
@@ -150,36 +152,40 @@ class Tracker_Node(Node):
                     a4 = np.array([[[msg.result_boxes[i].x2, msg.result_boxes[i].y2]]], dtype=np.float32)
                     a5 = np.array([[[(msg.result_boxes[i].x1 + msg.result_boxes[i].x2) / 2, (msg.result_boxes[i].y1 + msg.result_boxes[i].y2) / 2]]], dtype=np.float32)
                     self.LKtracker_prevpoints = np.concatenate((self.LKtracker_prevpoints, a1, a2, a3, a4, a5), axis = 0)
+
+                feature_time = time.time() - update_time_start
                 
                 # catch up with the last track frame
                 if(self.LKtracker_last_track_task_frame_id - msg.frame_id > 0):
                     # calculate the interval
-                    base_time = self.tracking_once_time
+                    base_time = self.last_tracking_once_time
                     frame_time = 1 / self.camera_frame_rate
-                    active_cache_size = msg.frame_id - self.LKtracker_last_track_task_frame_id
+                    active_cache_size = self.LKtracker_last_track_task_frame_id - msg.frame_id
                     interval = 0
-                    while interval + 1 < active_cache_size:
+
+                    while ((interval + 1) < active_cache_size):
                         times = active_cache_size / (interval + 1)
                         if(times > 1):
                             times_round_up = math.ceil(times)
-                            if(times_round_up * base_time <= frame_time):
+                            if(times_round_up * base_time + feature_time <= frame_time):
                                 break
+                            else:
+                                interval += 1
                         else:
                             break
-                        interval += 1
 
                     with self.frame_history_rlock:
                         last_track_frame = self.frame_history[self.LKtracker_last_track_task_frame_id]
 
                     # now tracking on active cache to catch up with the last track frame
                     active_cache_tracking_time_start = time.time()
-                    new_boxes, new_points, new_img = self.object_tracking(msg.frame_id, last_track_frame, self.LKtracker_last_track_task_frame_id, interval)
+                    new_boxes, new_points, new_img, times = self.object_tracking(msg.frame_id, last_track_frame, self.LKtracker_last_track_task_frame_id, interval)
                     active_cache_tracking_time = time.time() - active_cache_tracking_time_start
                     self.LKtracker_previmg = new_img
                     self.LKtracker_prevpoints = new_points
                     self.LKtracker_prevboxes = new_boxes
 
-                    self.get_logger().info('Tracking on active cache to catch up with last track frame, costing %f seconds.' % (active_cache_tracking_time))
+                    self.get_logger().info('Tracking on active cache. Cache Size: %d | Interval: %d | Tracking times: %d | Time count: %fs.' % (active_cache_size, interval, times, active_cache_tracking_time))
                 else:
                     # detected frame already catchs up to last track frame, just return the init results
                     self.get_logger().info('Directly inited tracker.')
@@ -194,6 +200,7 @@ class Tracker_Node(Node):
                 self.LKtracker_is_init = True
 
                 updating_time = time.time() - update_time_start
+
                 self.get_logger().info('Tracker received detect result of frame %d, and inited/updated tracker in %f seconds.' % (msg.frame_id, updating_time))
             else:
                 self.get_logger().info('Tracker received detect result of frame %d but it is outdated, now dropping it.' % (msg.frame_id))
@@ -215,12 +222,14 @@ class Tracker_Node(Node):
             curr_gray = cv2.cvtColor(curr_frame, cv2.COLOR_BGR2GRAY)
             new_boxes, good_new_points = self.tracking_once(self.LKtracker_previmg, curr_gray, self.LKtracker_prevpoints, self.LKtracker_prevboxes)
             new_img = curr_gray
+            tracking_times = 1
         else:
             # tracking through the active cache by an interval
             index_i = start_frame_id
             index_j = start_frame_id + interval + 1
             flag = True
             first_exceed = True
+            tracking_times = 0
             while index_j <= end_frame_id and flag == True:
                 if(index_i == start_frame_id):
                     previmg = self.LKtracker_previmg
@@ -232,6 +241,7 @@ class Tracker_Node(Node):
                 # tracking once
                 new_boxes, good_new_points = self.tracking_once(previmg, nextimg, prevpoints, prevboxes)
                 new_img = nextimg
+                tracking_times += 1
 
                 # update i, j
                 index_i = index_j
@@ -251,7 +261,7 @@ class Tracker_Node(Node):
                     with self.frame_history_rlock:
                         nextimg = cv2.cvtColor(self.frame_history[index_j], cv2.COLOR_BGR2GRAY)
         
-        return new_boxes, good_new_points, new_img
+        return new_boxes, good_new_points, new_img, tracking_times
 
     def tracking_once(self, previmg, nextimg, prevpoints, prevboxes):
         # running object tracking once between two frames

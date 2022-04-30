@@ -1,13 +1,17 @@
-from hashlib import new
 import sys
 import math
+import time
+import numpy as np
 from readerwriterlock import rwlock
+import multiprocessing
 from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
 from rclpy.callback_groups import ReentrantCallbackGroup
 from rclpy.executors import MultiThreadedExecutor
 from bspipeline_interfaces.msg import Camera
 from bspipeline_interfaces.msg import DetectDelay
 from bspipeline_interfaces.msg import TrackDelay
+from cv_bridge import CvBridge # Package to convert between ROS and OpenCV Images
+import cv2 # OpenCV library
 import rclpy
 from rclpy.node import Node
 
@@ -16,17 +20,23 @@ class Scheduler_Node(Node):
 
     def __init__(self):
         # Command:
-        # ros2 run basic_pipeline scheduler [client_name]
+        # ros2 run basic_pipeline scheduler [client_name] [pixel_diff] [pixel_count_rate]
         # Example:
-        # ros2 run basic_pipeline scheduler client1
+        # ros2 run basic_pipeline scheduler client1 35 0.2
         # Arguments:
         # (Arguments can be skipped if the default value would like to be used, but others must be specified in the order mentioned above.)
         # (Argument types: optional or necessary)
         # client_name: optional, value: the client name, if not set, 'anonymous_client' will be default.
+        # pixel_diff: necessary, value: the threshold of the abs value difference of two pixels, this should be an int between 0 and 255
+		# pixel_count_rate: necessary, value: the threshold of the 'different' pixels' rate, this should be a float between 0 and 1
 
-        if(len(sys.argv) == 2):
+        if(len(sys.argv) == 4):
             self.name = sys.argv[1]
+            self.fi = int(sys.argv[2])
+            self.fi_motion_rate = float(sys.argv[3])
         else:
+            self.fi = int(sys.argv[1])
+            self.fi_motion_rate = float(sys.argv[2])
             self.name = 'anonymous_client'
         super().__init__(self.name + '_scheduler')
 
@@ -43,6 +53,9 @@ class Scheduler_Node(Node):
         self.track_interval_wlock = self.track_interval_lock.gen_wlock()
         self.track_interval = 0
         self.track_counter = 0
+
+        self.br = CvBridge()
+        self.last_frame_msg = None
 
         self.group1 = MutuallyExclusiveCallbackGroup()
         self.group2 = MutuallyExclusiveCallbackGroup()
@@ -61,15 +74,36 @@ class Scheduler_Node(Node):
         self.camera_frame_rate = msg.frame_rate
 
         # schedule the detect frame/task
-        if(self.detect_counter == 0):
+        # identify the trigger frame
+        if(msg.frame_id == 1):
             self.detect_publisher.publish(msg)
-            self.get_logger().info('Frame %d has been submitted to the detector.' % (msg.frame_id))
-        
-        with self.detect_interval_rlock:
-            if(self.detect_counter >= self.detect_interval):
-                self.detect_counter = 0
+            self.last_frame_msg = msg
+            self.get_logger().info('Frame %d is a trigger frame and has been submitted to the detector.' % (msg.frame_id))
+        else:
+            cal_start_time = time.time()
+            last_frame_gray = cv2.cvtColor(self.br.imgmsg_to_cv2(self.last_frame_msg.frame), cv2.COLOR_BGR2GRAY)
+            curr_frame_gray = cv2.cvtColor(self.br.imgmsg_to_cv2(msg.frame), cv2.COLOR_BGR2GRAY)
+
+            last_frame_gray = last_frame_gray.astype(np.int16)
+            curr_frame_gray = curr_frame_gray.astype(np.int16)
+
+            frame_diff_gray = curr_frame_gray - last_frame_gray
+            frame_diff_gray_abs = np.abs(frame_diff_gray)
+
+            total_pixels = curr_frame_gray.shape[0] * curr_frame_gray.shape[1]
+            pixels_diff_count = np.sum(frame_diff_gray_abs > self.fi)
+
+            if(pixels_diff_count / total_pixels > self.fi_motion_rate):
+                # this is a trigger frame
+                self.detect_publisher.publish(msg)
+                self.last_frame_msg = msg
+                self.get_logger().info('Frame %d is a trigger frame and has been submitted to the detector. Pixels count: %d | Pixels rate: %f | Calculate time: %fs' % \
+                (msg.frame_id, pixels_diff_count, pixels_diff_count / total_pixels, time.time() - cal_start_time))
             else:
-                self.detect_counter += 1
+                # this is not a trigger frame
+                self.last_frame_msg = msg
+                self.get_logger().info('Frame %d is not a trigger frame, hence ignore it. Pixels count: %d | Pixels rate: %f | Calculate time: %fs' % \
+                (msg.frame_id, pixels_diff_count, pixels_diff_count / total_pixels, time.time() - cal_start_time))
         
         # schedule the track frame/task
         self.track_publisher.publish(msg)

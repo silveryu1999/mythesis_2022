@@ -79,7 +79,7 @@ class Networker_Node(Node):
             self.timer2 = self.create_timer(5.0, self.clear_srv_callback, callback_group=self.group)
 
             if(self.network_on == True):
-                self.get_logger().info('Networker init done. Simulating network delay with bandwidth file: %s' % (self.network_path))
+                self.get_logger().info('Networker init done. Simulating network delay with bandwidth file: %s, length: %d' % (self.network_path, len(self.network_throughput)))
             else:
                 self.get_logger().info('Networker init done. Not simulating network delay.')
         else:
@@ -99,9 +99,13 @@ class Networker_Node(Node):
 
                 with self.network_throughput_index_lock:
                     current_index = self.network_throughput_index
-                    self.network_throughput_index = (self.network_throughput_index + 1) % len(self.network_path)
+                    self.network_throughput_index = (self.network_throughput_index + 1) % len(self.network_throughput)
                 
                 bandwidth = self.network_throughput[current_index] # bytes per second
+                if(bandwidth == 0):
+                    # consider the package is lost
+                    self.get_logger().info('Frame %d has been lost.')
+                    return
                 
                 # network delay: simulated by transmission delay
                 delay = frame_bytes / bandwidth

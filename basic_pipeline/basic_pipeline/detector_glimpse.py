@@ -39,21 +39,59 @@ class Detector_Node(Node):
 		self.detect_response_listener = self.create_subscription(DetectResponse, self.name + '_detect_response_network', self.response_callback, 10, callback_group=self.group2)
 		self.detect_result_publisher = self.create_publisher(DetectResult, self.name + '_detect_result', 10, callback_group=self.group3)
 		self.detect_delay_publisher = self.create_publisher(DetectDelay, self.name + '_detect_delay', 10, callback_group=self.group3)
+		self.timer = self.create_timer(0.05, self.trigger_frame_callback, callback_group=self.group3)
 		
 		self.last_detect_frame_id = 0
+
+		self.trigger_frame_init = False
+		self.trigger_frame_in_flight = False
+		self.trigger_frame_is_update = False
+		self.last_sending_trigger_frame_id = 0
+
+		self.last_trigger_frame_lock = threading.Lock()
+		self.last_trigger_frame = None
+		self.last_trigger_frame_id = 0
 		
 		self.get_logger().info('Detector init done.')
 	
 	def detect_callback(self, msg):
-		request = DetectRequest()
-		request.frame = msg.frame
-		request.frame_id = msg.frame_id
-		request.client_name = self.name
-		request.sending_timestamp = time.time()
-		self.detect_request_publisher.publish(request)
-		self.get_logger().info('Frame %d has been delivered to the networker.' % (msg.frame_id))
+		self.trigger_frame_init = True
+
+		with self.last_trigger_frame_lock:
+			self.last_trigger_frame = msg.frame
+			self.last_trigger_frame_id = msg.frame_id
+			self.trigger_frame_is_update = True
+
+	def trigger_frame_callback(self):
+		self.timer.cancel()
+		self.get_logger().info('Detector is processing trigger frame callback in a loop.')
+
+		while self.trigger_frame_init == False:
+			pass
+
+		while True:
+			if(self.trigger_frame_in_flight == False):
+				request = DetectRequest()
+
+				with self.last_trigger_frame_lock:
+					request.frame = self.last_trigger_frame
+					request.frame_id = self.last_trigger_frame_id
+
+				if(request.frame_id > self.last_sending_trigger_frame_id):
+					request.client_name = self.name
+					request.sending_timestamp = time.time()
+					self.last_sending_trigger_frame_id = request.frame_id
+					self.detect_request_publisher.publish(request)
+					self.trigger_frame_in_flight = True
+					self.get_logger().info('Trigger Frame %d has been delivered to the networker.' % (request.frame_id))
+				else:
+					self.trigger_frame_is_update = False
+					while self.trigger_frame_is_update == False:
+						pass
 		
 	def response_callback(self, msg):
+		self.trigger_frame_in_flight = False
+		
 		if(msg.frame_id > self.last_detect_frame_id):
 			flag = True
 			self.last_detect_frame_id = msg.frame_id
@@ -90,7 +128,7 @@ def main(args=None):
 	
 	try:
 		detector_node = Detector_Node()
-		executor = MultiThreadedExecutor(num_threads=5)
+		executor = MultiThreadedExecutor(num_threads=6)
 		executor.add_node(detector_node)
 		try:
 			executor.spin()

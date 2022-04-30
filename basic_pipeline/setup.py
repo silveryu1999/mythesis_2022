@@ -22,15 +22,16 @@ setup(
         'console_scripts': [
         	'camera = basic_pipeline.camera:main',
         	'scheduler = basic_pipeline.scheduler:main',
+        	'scheduler_glimpse = basic_pipeline.scheduler_glimpse:main',
         	'detector = basic_pipeline.detector:main',
+        	'detector_glimpse = basic_pipeline.detector_glimpse:main',
         	'networker = basic_pipeline.networker:main',
         	'networker_ros2 = basic_pipeline.networker_ros2:main',
         	'tracker = basic_pipeline.tracker:main',
-        	'tracker2 = basic_pipeline.tracker2:main',
         	'collector = basic_pipeline.collector:main',
         	'displayer = basic_pipeline.displayer:main',
-        	'server_ros2 = basic_pipeline.server_ros2:main',
         	'monitor = basic_pipeline.monitor:main',
+        	'server_ros2 = basic_pipeline.server_ros2:main',
         ],
     },
 )

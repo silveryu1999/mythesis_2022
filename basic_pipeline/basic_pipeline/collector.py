@@ -3,6 +3,7 @@ import sys
 import time
 import glob
 import csv
+import multiprocessing
 from readerwriterlock import rwlock
 from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
 from rclpy.callback_groups import ReentrantCallbackGroup
@@ -215,7 +216,7 @@ def main(args=None):
     collector_node = Collector_Node()
 
     if(collector_node.init_flag == True):
-        executor = MultiThreadedExecutor(num_threads=4)
+        executor = MultiThreadedExecutor(num_threads=multiprocessing.cpu_count())
         executor.add_node(collector_node)
         try:
             executor.spin()
