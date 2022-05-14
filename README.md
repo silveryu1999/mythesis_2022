@@ -14,12 +14,10 @@ developing...
 ~2022/04/20: 添加自适应的检测和跟踪任务调度，添加性能监视模块，修改其它模块  
 ~2022/04/25: 添加仿真server，修正tracker的跟踪方式(使用上一次的track result进行跟踪，或收到检测结果后在cache上跳帧跟踪到最新帧)，修改其它模块  
 ~2022/04/30: 添加glimpse版本的scheduler和detector，修正其它模块的一些错误  
+~2022/05/14: 完成答辩，提交最终版本  
 
-## Framework    
-Single Client-Server  
+## Framework     
 ![image text](https://github.com/sysu18364109/mythesis_2022/blob/main/pic1.png)  
-Distributed: Multi-Client Multi-Server (only supported in ros2 currently)  
-![image text](https://github.com/sysu18364109/mythesis_2022/blob/main/pic2.png)  
 
 ## Prerequisites
 * OS：Ubuntu20.04（不推荐使用虚拟机） / Win10（还没测试过）  
