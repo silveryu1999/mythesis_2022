@@ -23,10 +23,10 @@ async def handler(request, ws):
         response_boxes = []
         
         # adding a process delay
-        time.sleep(0.15)
+        time.sleep(0.02)
         
         # get result
-        with open("/home/silveryu1999/ground_truth/154/" + str(frame_id) + '.txt', encoding="utf-8") as cf:
+        with open("/home/silveryu1999/ground_truth/433/" + str(frame_id) + '.txt', encoding="utf-8") as cf:
         	lines = csv.reader(cf, delimiter=",")
         	for line in lines:
         		response_boxes.append(

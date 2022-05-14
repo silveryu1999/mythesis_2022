@@ -17,9 +17,9 @@ class Detector_Node(Node):
 	
 	def __init__(self):
 		# Command:
-		# ros2 run basic_pipeline detector [client_name]
+		# ros2 run basic_pipeline detector_glimpse [client_name]
 		# Example:
-		# ros2 run basic_pipeline detector client1
+		# ros2 run basic_pipeline detector_glimpse client1
 		# Arguments:
 		# (Arguments can be skipped if the default value would like to be used, but others must be specified in the order mentioned above.)
 		# (Argument types: optional or necessary)

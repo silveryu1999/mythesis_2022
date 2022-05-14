@@ -10,6 +10,7 @@ from rclpy.executors import MultiThreadedExecutor
 from bspipeline_interfaces.msg import Camera
 from bspipeline_interfaces.msg import DetectResult
 from bspipeline_interfaces.msg import TrackResult
+from bspipeline_interfaces.msg import TrackUpdateDelay
 from cv_bridge import CvBridge # Package to convert between ROS and OpenCV Images
 import cv2 # OpenCV library
 import rclpy
@@ -66,6 +67,7 @@ class Tracker_Node(Node):
         self.track_listener = self.create_subscription(Camera, self.name + '_track_frame', self.track_callback, 10, callback_group=self.mutex_group1)
         self.detect_result_listener = self.create_subscription(DetectResult, self.name + '_detect_result', self.detect_result_callback, 10, callback_group=self.mutex_group2)
         self.track_result_publisher = self.create_publisher(TrackResult, self.name + '_track_result', 10, callback_group=self.group)
+        self.track_update_delay_publisher = self.create_publisher(TrackUpdateDelay, self.name + '_track_update_delay', 10, callback_group=self.group)
 
         self.br = CvBridge()
         self.camera_frame_rate = 0
@@ -200,6 +202,12 @@ class Tracker_Node(Node):
                 self.LKtracker_is_init = True
 
                 updating_time = time.time() - update_time_start
+
+                update_delay = TrackUpdateDelay()
+                update_delay.start_frame_id = msg.frame_id
+                update_delay.end_frame_id = self.LKtracker_last_track_task_frame_id
+                update_delay.update_time = updating_time
+                self.track_update_delay_publisher.publish(update_delay)
 
                 self.get_logger().info('Tracker received detect result of frame %d, and inited/updated tracker in %f seconds.' % (msg.frame_id, updating_time))
             else:
