@@ -4,6 +4,9 @@
 A distributed and end-cloud collaborated real-time object detection framework based on ROS2  
 一个基于ROS2实现的分布式端云协同实时目标检测框架  
 
+## Demo  
+![image text](https://github.com/sysu18364109/mythesis_2022/blob/main/demo.gif)  
+
 ## Progress  
 developing...  
 ~2022/03/06: 修复已有系统bug，除了最后的显示窗口，系统框架能完整运行  
